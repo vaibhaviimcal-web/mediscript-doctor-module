@@ -116,6 +116,10 @@
       align-items: center;
       gap: 6px;
     }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
@@ -155,7 +159,7 @@
     .modal-title { font-size: 20px; font-weight: 700; }
     .close-btn { font-size: 24px; cursor: pointer; background: none; border: none; }
     
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; position: relative; }
     .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
     .form-input {
       width: 100%;
@@ -163,8 +167,19 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       font-size: 13px;
+      transition: all 0.2s;
     }
     .form-input:focus { outline: none; border-color: var(--primary); }
+    .form-input.error { border-color: var(--danger); background: #FFF5F5; }
+    .form-input.success { border-color: var(--success); }
+    
+    .error-message {
+      color: var(--danger);
+      font-size: 11px;
+      margin-top: 4px;
+      display: none;
+    }
+    .error-message.show { display: block; }
     
     table { width: 100%; border-collapse: collapse; }
     th {
@@ -304,7 +319,7 @@
       },
       gastritis: {
         diagnosis: 'Gastritis',
-        medicines: ['Omeprazole', 'Antacid'],
+        medicines: ['Omeprazole'],
         advice: 'Avoid spicy food, eat small frequent meals'
       },
       uti: {
@@ -383,6 +398,96 @@
       currentEditId = null;
     }
 
+    // VALIDATION FUNCTIONS
+    function validateField(fieldId, validationType) {
+      const field = document.getElementById(fieldId);
+      const errorEl = document.getElementById(fieldId + 'Error');
+      const value = field.value.trim();
+      
+      let isValid = true;
+      let errorMsg = '';
+
+      switch(validationType) {
+        case 'required':
+          if (!value) {
+            isValid = false;
+            errorMsg = 'This field is required';
+          }
+          break;
+        
+        case 'email':
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (value && !emailRegex.test(value)) {
+            isValid = false;
+            errorMsg = 'Please enter a valid email address';
+          }
+          break;
+        
+        case 'phone':
+          const phoneRegex = /^[+]?[0-9]{10,13}$/;
+          if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+            isValid = false;
+            errorMsg = 'Please enter a valid 10-digit phone number';
+          }
+          break;
+        
+        case 'age':
+          const age = parseInt(value);
+          if (!age || age < 1 || age > 120) {
+            isValid = false;
+            errorMsg = 'Age must be between 1 and 120';
+          }
+          break;
+        
+        case 'amount':
+          const amount = parseFloat(value);
+          if (!amount || amount <= 0) {
+            isValid = false;
+            errorMsg = 'Amount must be greater than 0';
+          }
+          break;
+        
+        case 'date':
+          if (!value) {
+            isValid = false;
+            errorMsg = 'Please select a date';
+          }
+          break;
+      }
+
+      if (errorEl) {
+        if (isValid) {
+          field.classList.remove('error');
+          field.classList.add('success');
+          errorEl.classList.remove('show');
+        } else {
+          field.classList.add('error');
+          field.classList.remove('success');
+          errorEl.textContent = errorMsg;
+          errorEl.classList.add('show');
+        }
+      }
+
+      return isValid;
+    }
+
+    function validateForm(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return false;
+      
+      const inputs = form.querySelectorAll('[data-validate]');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        const validationType = input.getAttribute('data-validate');
+        if (!validateField(input.id, validationType)) {
+          isValid = false;
+        }
+      });
+      
+      return isValid;
+    }
+
     // Global Search
     function globalSearchPatients() {
       const query = document.getElementById('globalSearch').value.toLowerCase();
@@ -424,6 +529,7 @@
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         document.getElementById(fieldId).value = transcript;
+        validateField(fieldId, 'required');
         showToast('Voice captured!', 'success');
       };
 
@@ -445,32 +551,41 @@
       currentEditId = editId;
       
       openModal(editId ? '✏️ Edit Patient' : '👤 Register New Patient', `
-        <form onsubmit="event.preventDefault(); savePatient();">
+        <form id="patientForm" onsubmit="event.preventDefault(); if(validateForm('patientForm')) savePatient();">
           <div class="grid grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">First Name *</label>
-              <input type="text" id="patFirstName" class="form-input" value="${patient ? patient.first_name : ''}" required>
+              <input type="text" id="patFirstName" class="form-input" value="${patient ? patient.first_name : ''}" 
+                     data-validate="required" onblur="validateField('patFirstName', 'required')">
+              <div id="patFirstNameError" class="error-message"></div>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name *</label>
-              <input type="text" id="patLastName" class="form-input" value="${patient ? patient.last_name : ''}" required>
+              <input type="text" id="patLastName" class="form-input" value="${patient ? patient.last_name : ''}" 
+                     data-validate="required" onblur="validateField('patLastName', 'required')">
+              <div id="patLastNameError" class="error-message"></div>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-4">
             <div class="form-group">
               <label class="form-label">Age *</label>
-              <input type="number" id="patAge" class="form-input" value="${patient ? patient.age : ''}" required>
+              <input type="number" id="patAge" class="form-input" value="${patient ? patient.age : ''}" 
+                     data-validate="age" onblur="validateField('patAge', 'age')">
+              <div id="patAgeError" class="error-message"></div>
             </div>
             <div class="form-group">
               <label class="form-label">Gender *</label>
-              <select id="patGender" class="form-input">
+              <select id="patGender" class="form-input" data-validate="required">
+                <option value="">Select Gender</option>
                 <option ${patient && patient.gender === 'Male' ? 'selected' : ''}>Male</option>
                 <option ${patient && patient.gender === 'Female' ? 'selected' : ''}>Female</option>
               </select>
+              <div id="patGenderError" class="error-message"></div>
             </div>
             <div class="form-group">
               <label class="form-label">Blood Group</label>
               <select id="patBlood" class="form-input">
+                <option value="">Select</option>
                 ${['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(bg => 
                   `<option ${patient && patient.blood_group === bg ? 'selected' : ''}>${bg}</option>`
                 ).join('')}
@@ -480,11 +595,17 @@
           <div class="grid grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">Phone *</label>
-              <input type="tel" id="patPhone" class="form-input" value="${patient ? patient.phone : ''}" required>
+              <input type="tel" id="patPhone" class="form-input" value="${patient ? patient.phone : ''}" 
+                     data-validate="phone" onblur="validateField('patPhone', 'phone')" 
+                     placeholder="+919876543210">
+              <div id="patPhoneError" class="error-message"></div>
             </div>
             <div class="form-group">
               <label class="form-label">Email</label>
-              <input type="email" id="patEmail" class="form-input" value="${patient ? patient.email : ''}">
+              <input type="email" id="patEmail" class="form-input" value="${patient ? patient.email : ''}" 
+                     data-validate="email" onblur="validateField('patEmail', 'email')" 
+                     placeholder="patient@example.com">
+              <div id="patEmailError" class="error-message"></div>
             </div>
           </div>
           <div class="flex gap-3 mt-6">
@@ -497,13 +618,13 @@
 
     function savePatient() {
       const patientData = {
-        first_name: document.getElementById('patFirstName').value,
-        last_name: document.getElementById('patLastName').value,
+        first_name: document.getElementById('patFirstName').value.trim(),
+        last_name: document.getElementById('patLastName').value.trim(),
         age: parseInt(document.getElementById('patAge').value),
         gender: document.getElementById('patGender').value,
         blood_group: document.getElementById('patBlood').value,
-        phone: document.getElementById('patPhone').value,
-        email: document.getElementById('patEmail').value
+        phone: document.getElementById('patPhone').value.trim(),
+        email: document.getElementById('patEmail').value.trim()
       };
 
       if (currentEditId) {
@@ -531,25 +652,31 @@
       currentEditId = editId;
       
       openModal(editId ? '✏️ Edit Appointment' : '📅 Book Appointment', `
-        <form onsubmit="event.preventDefault(); saveAppointment();">
+        <form id="apptForm" onsubmit="event.preventDefault(); if(validateForm('apptForm')) saveAppointment();">
           <div class="form-group">
             <label class="form-label">Patient *</label>
-            <select id="apptPatient" class="form-input" required>
+            <select id="apptPatient" class="form-input" data-validate="required">
+              <option value="">Select Patient</option>
               ${DB.patients.map(p => `<option value="${p.id}" ${appt && appt.patient_id === p.id ? 'selected' : ''}>${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('')}
             </select>
+            <div id="apptPatientError" class="error-message"></div>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">Date *</label>
-              <input type="date" id="apptDate" class="form-input" value="${appt ? appt.date : ''}" required>
+              <input type="date" id="apptDate" class="form-input" value="${appt ? appt.date : ''}" 
+                     data-validate="date" onblur="validateField('apptDate', 'date')">
+              <div id="apptDateError" class="error-message"></div>
             </div>
             <div class="form-group">
               <label class="form-label">Time Slot *</label>
-              <select id="apptSlot" class="form-input" required>
+              <select id="apptSlot" class="form-input" data-validate="required">
+                <option value="">Select Slot</option>
                 ${['09:00-09:30','09:30-10:00','10:00-10:30','10:30-11:00','11:00-11:30'].map(slot =>
                   `<option ${appt && appt.slot === slot ? 'selected' : ''}>${slot}</option>`
                 ).join('')}
               </select>
+              <div id="apptSlotError" class="error-message"></div>
             </div>
           </div>
           <div class="form-group">
@@ -600,20 +727,26 @@
       currentEditId = editId;
       
       openModal(editId ? '✏️ Edit Invoice' : '💰 Generate Invoice', `
-        <form onsubmit="event.preventDefault(); saveInvoice();">
+        <form id="invoiceForm" onsubmit="event.preventDefault(); if(validateForm('invoiceForm')) saveInvoice();">
           <div class="form-group">
             <label class="form-label">Patient *</label>
-            <select id="billPatient" class="form-input" required>
+            <select id="billPatient" class="form-input" data-validate="required">
+              <option value="">Select Patient</option>
               ${DB.patients.map(p => `<option value="${p.id}" ${inv && inv.patient_id === p.id ? 'selected' : ''}>${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('')}
             </select>
+            <div id="billPatientError" class="error-message"></div>
           </div>
           <div class="form-group">
-            <label class="form-label">Services</label>
-            <input type="text" id="billServices" class="form-input" value="${inv ? inv.services : 'Consultation'}">
+            <label class="form-label">Services *</label>
+            <input type="text" id="billServices" class="form-input" value="${inv ? inv.services : 'Consultation'}" 
+                   data-validate="required" onblur="validateField('billServices', 'required')">
+            <div id="billServicesError" class="error-message"></div>
           </div>
           <div class="form-group">
-            <label class="form-label">Amount</label>
-            <input type="number" id="billAmount" class="form-input" value="${inv ? (inv.total / 1.18).toFixed(2) : '500'}" oninput="calcTotal()">
+            <label class="form-label">Amount *</label>
+            <input type="number" id="billAmount" class="form-input" value="${inv ? (inv.total / 1.18).toFixed(2) : '500'}" 
+                   data-validate="amount" oninput="calcTotal(); validateField('billAmount', 'amount')">
+            <div id="billAmountError" class="error-message"></div>
           </div>
           <div class="form-group">
             <label class="form-label">GST (18%)</label>
@@ -624,10 +757,12 @@
             <input type="number" id="billTotal" class="form-input" readonly value="${inv ? inv.total : '590'}" style="font-weight: 700;">
           </div>
           <div class="form-group">
-            <label class="form-label">Payment Method</label>
-            <select id="billPayment" class="form-input">
+            <label class="form-label">Payment Method *</label>
+            <select id="billPayment" class="form-input" data-validate="required">
+              <option value="">Select Payment Method</option>
               ${['Cash','Card','UPI'].map(pm => `<option ${inv && inv.payment === pm ? 'selected' : ''}>${pm}</option>`).join('')}
             </select>
+            <div id="billPaymentError" class="error-message"></div>
           </div>
           <div class="flex gap-3 mt-6">
             <button type="submit" class="btn btn-success flex-1">${editId ? 'Update' : 'Generate'} Invoice</button>
@@ -636,7 +771,6 @@
         </form>
       `);
       
-      // Trigger initial calculation
       setTimeout(() => calcTotal(), 100);
     }
 
@@ -694,20 +828,24 @@
           </div>
         </div>
 
-        <form onsubmit="event.preventDefault(); saveExamination();">
+        <form id="examForm" onsubmit="event.preventDefault(); if(validateForm('examForm')) saveExamination();">
           <div class="form-group">
             <label class="form-label">Patient *</label>
-            <select id="examPatient" class="form-input" required>
+            <select id="examPatient" class="form-input" data-validate="required">
+              <option value="">Select Patient</option>
               ${DB.patients.map(p => `<option value="${p.id}">${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('')}
             </select>
+            <div id="examPatientError" class="error-message"></div>
           </div>
 
           <div class="form-group">
             <label class="form-label">Chief Complaint *</label>
             <div style="display: flex; gap: 8px;">
-              <textarea id="examComplaint" class="form-input" rows="2" required></textarea>
+              <textarea id="examComplaint" class="form-input" rows="2" data-validate="required" 
+                        onblur="validateField('examComplaint', 'required')"></textarea>
               <button type="button" id="voiceBtnexamComplaint" class="voice-btn" onclick="startVoiceInput('examComplaint')">🎤</button>
             </div>
+            <div id="examComplaintError" class="error-message"></div>
           </div>
 
           <div style="background: #F8F9FA; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
@@ -734,7 +872,9 @@
 
           <div class="form-group">
             <label class="form-label">Diagnosis *</label>
-            <input type="text" id="examDiagnosis" class="form-input" required>
+            <input type="text" id="examDiagnosis" class="form-input" data-validate="required" 
+                   onblur="validateField('examDiagnosis', 'required')">
+            <div id="examDiagnosisError" class="error-message"></div>
           </div>
 
           <div class="form-group">
@@ -756,7 +896,7 @@
         </form>
       `);
       
-      addMedicine(); // Add first medicine field
+      addMedicine();
     }
 
     function applyTemplate(templateKey) {
@@ -764,12 +904,12 @@
       document.getElementById('examDiagnosis').value = template.diagnosis;
       document.getElementById('examAdvice').value = template.advice;
       
-      // Clear and add medicines
       document.getElementById('medicineList').innerHTML = '';
       template.medicines.forEach(med => {
         addMedicine(med);
       });
       
+      validateField('examDiagnosis', 'required');
       showToast('Template applied!', 'success');
     }
 
@@ -845,11 +985,15 @@
     }
 
     function generatePrescriptionPDF() {
+      if (!validateForm('examForm')) {
+        showToast('Please fill all required fields', 'error');
+        return;
+      }
+
       const patient = DB.patients.find(p => p.id === document.getElementById('examPatient').value);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      // Header
       doc.setFontSize(20);
       doc.setTextColor(20, 190, 240);
       doc.text('MediScript Enterprise', 105, 20, { align: 'center' });
@@ -861,30 +1005,25 @@
       
       doc.line(20, 40, 190, 40);
 
-      // Patient Info
       doc.setFontSize(12);
       doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 50);
       doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 57);
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 50);
 
-      // Complaint
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.text('Chief Complaint:', 20, 70);
       doc.setFont(undefined, 'normal');
       doc.text(document.getElementById('examComplaint').value, 20, 77, { maxWidth: 170 });
 
-      // Vitals
       const vitals = `BP: ${document.getElementById('examBP').value || 'N/A'} | Temp: ${document.getElementById('examTemp').value || 'N/A'} | Pulse: ${document.getElementById('examPulse').value || 'N/A'} | SpO2: ${document.getElementById('examSpO2').value || 'N/A'}`;
       doc.text('Vitals: ' + vitals, 20, 90);
 
-      // Diagnosis
       doc.setFont(undefined, 'bold');
       doc.text('Diagnosis:', 20, 100);
       doc.setFont(undefined, 'normal');
       doc.text(document.getElementById('examDiagnosis').value, 20, 107);
 
-      // Prescription
       doc.setFont(undefined, 'bold');
       doc.text('Rx', 20, 120);
       doc.setFont(undefined, 'normal');
@@ -898,13 +1037,11 @@
         }
       });
 
-      // Advice
       doc.setFont(undefined, 'bold');
       doc.text('Advice:', 20, yPos + 10);
       doc.setFont(undefined, 'normal');
       doc.text(document.getElementById('examAdvice').value, 20, yPos + 17, { maxWidth: 170 });
 
-      // Footer
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
       doc.text('This is a computer-generated prescription', 105, 280, { align: 'center' });
@@ -1253,12 +1390,11 @@
     try {
       renderSidebar();
       renderContent();
-      console.log('✅ MediScript Enterprise - P0 FIXES COMPLETE!');
-      console.log('✅ Examination Module with Voice Input');
-      console.log('✅ GST Auto-Calculation Fixed');
-      console.log('✅ Edit Functionality Added');
-      console.log('✅ Global Patient Search');
-      console.log('✅ PDF Prescription Generation');
+      console.log('✅ MediScript Enterprise - VALIDATION ADDED!');
+      console.log('✅ Real-time validation on all forms');
+      console.log('✅ Field-specific validation (email, phone, age, amount)');
+      console.log('✅ Visual feedback (red borders, error messages)');
+      console.log('✅ Prevent invalid submission');
     } catch (error) {
       console.error('Error:', error);
     }
