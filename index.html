@@ -26,12 +26,12 @@
 <body class="bg-gray-50">
   <div id="app"></div>
 
-  <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">⚙️ Settings</h2>
       <div class="card">
         <h3 class="font-bold mb-3">🤖 Gemini AI <span id="apiStatus"></span></h3>
+        <p class="text-sm text-gray-600 mb-3">Using: v1 API with gemini-1.5-flash-001</p>
         <input type="password" id="apiKeyInput" class="form-input mb-3" placeholder="AIzaSy...">
         <div class="flex gap-2">
           <button onclick="saveKey()" class="btn btn-success">💾 Save</button>
@@ -44,7 +44,6 @@
     </div>
   </div>
 
-  <!-- AI Diagnosis Modal -->
   <div id="aiModal" class="modal">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">🔬 AI Diagnosis</h2>
@@ -64,7 +63,6 @@
     </div>
   </div>
 
-  <!-- Exam Modal -->
   <div id="examModal" class="modal">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">🩺 New Examination</h2>
@@ -84,7 +82,6 @@
     </div>
   </div>
 
-  <!-- Patient Modal -->
   <div id="patModal" class="modal">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">👤 New Patient</h2>
@@ -147,18 +144,18 @@
       res.innerHTML = '';
 
       try {
-        // TRYING: models/gemini-pro format (with models/ prefix)
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${k}`, {
+        // TRYING: v1 API with gemini-1.5-flash-001
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${k}`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({contents:[{parts:[{text:'Hi'}]}]})
         });
 
         if(r.ok) {
-          res.innerHTML = '<div class="p-3 bg-green-50 border-2 border-green-300 rounded text-green-700"><strong>✅ Success!</strong> API works!</div>';
+          res.innerHTML = '<div class="p-3 bg-green-50 border-2 border-green-300 rounded text-green-700"><strong>✅ Success!</strong> API works with v1/gemini-1.5-flash-001!</div>';
         } else {
           const e = await r.json();
-          res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.error?.message || 'Failed'}</div>`;
+          res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.error?.message || 'Failed'}<br><br><small>Tried: v1/models/gemini-1.5-flash-001</small></div>`;
         }
       } catch(e) {
         res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.message}</div>`;
@@ -172,7 +169,7 @@
       const k = getKey();
       if(!k) throw new Error('Configure API key');
 
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${k}`, {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${k}`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -377,7 +374,7 @@ Return JSON:
 
     updateStatus();
     render();
-    console.log('✅ MediScript - Using models/gemini-pro format');
+    console.log('✅ MediScript - Using v1/gemini-1.5-flash-001');
   </script>
 </body>
 </html>
