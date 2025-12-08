@@ -3,378 +3,434 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EdgesOf MediScript - Complete System</title>
+  <title>EdgesOf MediScript v3.0 - Complete Doctor System</title>
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { font-family: system-ui; margin: 0; padding: 0; box-sizing: border-box; }
-    .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; }
-    .btn-primary { background: #2563eb; color: white; }
-    .btn-success { background: #10b981; color: white; }
-    .btn-purple { background: #8b5cf6; color: white; }
-    .btn:hover { transform: translateY(-2px); }
-    .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
-    .form-input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+    * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f9fafb; }
+    .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; transition: all 0.3s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; font-size: 14px; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-xs { padding: 4px 8px; font-size: 11px; }
+    .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; }
+    .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+    .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+    .btn-secondary { background: white; color: #1f2937; border: 2px solid #e5e7eb; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .form-input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; }
+    .form-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .badge { display: inline-flex; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-purple { background: #ede9fe; color: #6b21a8; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; overflow-y: auto; }
     .modal.active { display: flex; }
-    .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 1000px; max-height: 90vh; overflow-y: auto; width: 90%; }
-    .ai-loading { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 1200px; max-height: 90vh; overflow-y: auto; width: 90%; margin: 20px; }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 10px; color: rgba(255,255,255,0.8); transition: all 0.2s; cursor: pointer; }
+    .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-link.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+    th { background: #f9fafb; font-weight: 600; }
+    .ai-badge { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .voice-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .mic-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #ef4444; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 16px; }
+    .mic-btn:hover { background: #dc2626; transform: translateY(-50%) scale(1.1); }
+    .mic-btn.listening { animation: pulse 1.5s infinite; background: #10b981; }
+    .input-with-mic { position: relative; }
+    .template-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s; }
+    .template-card:hover { border-color: #8b5cf6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2); }
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+    .step-indicator { display: flex; justify-between; margin-bottom: 30px; }
+    .step-item { flex: 1; text-align: center; position: relative; }
+    .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; color: #9ca3af; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: 14px; }
+    .step-item.active .step-circle { background: #2563eb; color: white; }
+    .step-item.completed .step-circle { background: #10b981; color: white; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
-<body class="bg-gray-50">
+<body>
   <div id="app"></div>
 
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-4">⚙️ Settings</h2>
-      <div class="card">
-        <h3 class="font-bold mb-3">🤖 Gemini AI <span id="apiStatus"></span></h3>
-        <p class="text-sm text-gray-600 mb-3">Using: v1 API with gemini-1.5-flash-001</p>
-        <input type="password" id="apiKeyInput" class="form-input mb-3" placeholder="AIzaSy...">
-        <div class="flex gap-2">
-          <button onclick="saveKey()" class="btn btn-success">💾 Save</button>
-          <button onclick="testKey()" class="btn btn-primary" id="testBtn">🧪 Test</button>
-          <button onclick="clearKey()" class="btn btn-danger">Clear</button>
-        </div>
-        <div id="testResult" class="mt-3"></div>
-      </div>
-      <button onclick="closeModal('settingsModal')" class="btn btn-primary mt-4">Close</button>
-    </div>
-  </div>
+  <!-- Patient Modal -->
+  <div id="patientModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">👤 Complete Patient Registration</h2><button onclick="closeModal('patientModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><div class="step-indicator"><div class="step-item active" id="step1-indicator"><div class="step-circle">1</div><p class="text-xs">Basic Info</p></div><div class="step-item" id="step2-indicator"><div class="step-circle">2</div><p class="text-xs">Medical History</p></div><div class="step-item" id="step3-indicator"><div class="step-circle">3</div><p class="text-xs">Insurance</p></div></div><form onsubmit="savePatient(event)"><div id="step1" class="wizard-step active"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">First Name *</label><input type="text" id="patFirstName" class="form-input" required></div><div><label class="form-label">Last Name *</label><input type="text" id="patLastName" class="form-input" required></div></div><div class="grid grid-cols-3 gap-4 mb-4"><div><label class="form-label">Age *</label><input type="number" id="patAge" class="form-input" required></div><div><label class="form-label">Gender *</label><select id="patGender" class="form-input"><option>Male</option><option>Female</option><option>Other</option></select></div><div><label class="form-label">Blood Group</label><select id="patBlood" class="form-input"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Phone *</label><input type="tel" id="patPhone" class="form-input" required></div><div><label class="form-label">Email</label><input type="email" id="patEmail" class="form-input"></div></div><div class="mb-4"><label class="form-label">Address</label><textarea id="patAddress" class="form-input" rows="2"></textarea></div><button type="button" onclick="nextStep(2)" class="btn btn-primary">Next →</button></div><div id="step2" class="wizard-step"><div class="mb-4"><label class="form-label">Known Allergies</label><textarea id="patAllergies" class="form-input" rows="2" placeholder="e.g., Penicillin, Peanuts"></textarea></div><div class="mb-4"><label class="form-label">Current Medications</label><textarea id="patCurrentMeds" class="form-input" rows="2" placeholder="e.g., Aspirin 75mg daily"></textarea></div><div class="mb-4"><label class="form-label">Past Medical History</label><textarea id="patPastHistory" class="form-input" rows="3" placeholder="e.g., Diabetes, Hypertension"></textarea></div><div class="flex gap-3"><button type="button" onclick="prevStep(1)" class="btn btn-secondary">← Back</button><button type="button" onclick="nextStep(3)" class="btn btn-primary">Next →</button></div></div><div id="step3" class="wizard-step"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Insurance Provider</label><input type="text" id="patInsuranceProvider" class="form-input" placeholder="e.g., Star Health"></div><div><label class="form-label">Policy Number</label><input type="text" id="patPolicyNumber" class="form-input"></div></div><div class="flex gap-3"><button type="button" onclick="prevStep(2)" class="btn btn-secondary">← Back</button><button type="submit" class="btn btn-success">✅ Save Patient</button></div></div></form></div></div>
 
-  <div id="aiModal" class="modal">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-4">🔬 AI Diagnosis</h2>
-      <textarea id="complaint" class="form-input mb-3" rows="3" placeholder="Chief complaint..."></textarea>
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <input type="number" id="age" class="form-input" placeholder="Age" value="35">
-        <select id="gender" class="form-input">
-          <option>Male</option>
-          <option>Female</option>
-        </select>
-      </div>
-      <div id="aiResult"></div>
-      <div class="flex gap-2 mt-4">
-        <button onclick="diagnose()" class="btn btn-purple" id="diagBtn">🔬 Diagnose</button>
-        <button onclick="closeModal('aiModal')" class="btn btn-primary">Close</button>
-      </div>
-    </div>
-  </div>
+  <!-- Examination Modal -->
+  <div id="examinationModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><div><h2 class="text-2xl font-bold">🩺 Clinical Examination</h2><span class="voice-badge">🎤 Voice Enabled</span></div><button onclick="closeModal('examinationModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><form onsubmit="saveExamination(event)"><div class="mb-4"><label class="form-label">Patient *</label><select id="examPatient" class="form-input" required onchange="updatePatientInfo()"></select></div><div class="card"><h3 class="font-bold mb-3">⚡ Quick Templates</h3><div class="grid grid-cols-3 gap-3"><div class="template-card" onclick="applyTemplate('fever')"><div class="text-2xl mb-1">🤒</div><div class="font-bold text-sm">Fever</div></div><div class="template-card" onclick="applyTemplate('cold')"><div class="text-2xl mb-1">🤧</div><div class="font-bold text-sm">Cold/Cough</div></div><div class="template-card" onclick="applyTemplate('gastritis')"><div class="text-2xl mb-1">🤢</div><div class="font-bold text-sm">Gastritis</div></div><div class="template-card" onclick="applyTemplate('uti')"><div class="text-2xl mb-1">💧</div><div class="font-bold text-sm">UTI</div></div><div class="template-card" onclick="applyTemplate('hypertension')"><div class="text-2xl mb-1">❤️</div><div class="font-bold text-sm">Hypertension</div></div><div class="template-card" onclick="applyTemplate('diabetes')"><div class="text-2xl mb-1">🩸</div><div class="font-bold text-sm">Diabetes</div></div></div></div><div class="card"><h3 class="font-bold mb-4">📊 Vital Signs</h3><div class="grid grid-cols-3 gap-4 mb-4"><div class="input-with-mic"><label class="form-label">BP</label><input type="text" id="vitalBP" class="form-input" placeholder="120/80"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalBP')">🎤</button></div><div class="input-with-mic"><label class="form-label">Temp</label><input type="text" id="vitalTemp" class="form-input" placeholder="98.6°F"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalTemp')">🎤</button></div><div class="input-with-mic"><label class="form-label">Pulse</label><input type="text" id="vitalPulse" class="form-input" placeholder="72"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalPulse')">🎤</button></div><div class="input-with-mic"><label class="form-label">SpO2</label><input type="text" id="vitalSpO2" class="form-input" placeholder="98%"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalSpO2')">🎤</button></div><div class="input-with-mic"><label class="form-label">Weight (kg)</label><input type="number" id="vitalWeight" class="form-input" placeholder="70" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalWeight')">🎤</button></div><div class="input-with-mic"><label class="form-label">Height (cm)</label><input type="number" id="vitalHeight" class="form-input" placeholder="170" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalHeight')">🎤</button></div></div><div class="p-4 bg-blue-50 rounded-lg" id="bmiDisplay" style="display: none;"><div class="text-sm font-semibold text-blue-700">BMI: <span id="bmiValue"></span></div><div class="text-xs text-blue-600" id="bmiCategory"></div></div></div><div class="mb-4 input-with-mic"><label class="form-label">Chief Complaint * 🎤</label><textarea id="examComplaint" class="form-input" rows="2" required></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examComplaint')" style="top: 40px;">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">History of Present Illness 🎤</label><textarea id="examHPI" class="form-input" rows="3"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examHPI')" style="top: 40px;">🎤</button></div><div class="card"><h3 class="font-bold mb-4">🔍 Physical Examination</h3><div class="grid grid-cols-2 gap-4"><div class="input-with-mic"><label class="form-label">General</label><textarea id="examGeneral" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examGeneral')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Cardiovascular</label><textarea id="examCardio" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examCardio')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Respiratory</label><textarea id="examResp" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examResp')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Abdomen</label><textarea id="examAbdomen" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examAbdomen')" style="top: 30px;">🎤</button></div></div></div><div class="mb-4 input-with-mic"><label class="form-label">Provisional Diagnosis *</label><input type="text" id="examDiagnosis" class="form-input" required><button type="button" class="mic-btn" onclick="startVoiceInput('examDiagnosis')">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">Treatment Plan 🎤</label><textarea id="examTreatment" class="form-input" rows="4"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examTreatment')" style="top: 40px;">🎤</button><div class="mt-2"><button type="button" onclick="showSuggestions()" class="btn btn-secondary btn-xs">💡 Smart Suggestions</button></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Follow-up Date</label><input type="date" id="examFollowup" class="form-input"></div><div class="input-with-mic"><label class="form-label">Follow-up Notes</label><input type="text" id="examFollowupNotes" class="form-input"><button type="button" class="mic-btn" onclick="startVoiceInput('examFollowupNotes')">🎤</button></div></div><div class="flex gap-3"><button type="submit" class="btn btn-success">✅ Save</button><button type="button" onclick="generatePrescriptionPDF()" class="btn btn-primary">📄 PDF</button><button type="button" onclick="closeModal('examinationModal')" class="btn btn-secondary">Cancel</button></div></form></div></div>
 
-  <div id="examModal" class="modal">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-4">🩺 New Examination</h2>
-      <form onsubmit="saveExam(event)">
-        <select id="examPatient" class="form-input mb-3" required>
-          <option value="">Select Patient</option>
-        </select>
-        <textarea id="examComplaint" class="form-input mb-3" rows="2" placeholder="Chief Complaint *" required></textarea>
-        <input type="text" id="examDiag" class="form-input mb-3" placeholder="Diagnosis *" required>
-        <textarea id="examTreat" class="form-input mb-3" rows="3" placeholder="Treatment Plan"></textarea>
-        <div class="flex gap-2">
-          <button type="submit" class="btn btn-success">✅ Save</button>
-          <button type="button" onclick="openModal('aiModal')" class="btn btn-purple">🔬 AI Help</button>
-          <button type="button" onclick="closeModal('examModal')" class="btn btn-primary">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="patModal" class="modal">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-4">👤 New Patient</h2>
-      <form onsubmit="savePatient(event)">
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <input type="text" id="patFirst" class="form-input" placeholder="First Name *" required>
-          <input type="text" id="patLast" class="form-input" placeholder="Last Name *" required>
-        </div>
-        <div class="grid grid-cols-3 gap-3 mb-3">
-          <input type="number" id="patAge" class="form-input" placeholder="Age *" required>
-          <select id="patGender" class="form-input">
-            <option>Male</option>
-            <option>Female</option>
-          </select>
-          <input type="tel" id="patPhone" class="form-input" placeholder="Phone *" required>
-        </div>
-        <div class="flex gap-2">
-          <button type="submit" class="btn btn-success">✅ Save</button>
-          <button type="button" onclick="closeModal('patModal')" class="btn btn-primary">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
+  <script type="module">
     let DB = {
-      patients: [{id:'p1',pid:'P001',first:'Rajesh',last:'Kumar',age:45,gender:'Male',phone:'+919876543220'}],
-      exams: []
+      patients: [
+        {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220'},
+        {id: 'p2', patient_id: 'P002', first_name: 'Priya', last_name: 'Sharma', age: 32, gender: 'Female', blood_group: 'A+', phone: '+919876543221'},
+        {id: 'p3', patient_id: 'P003', first_name: 'Kumar', last_name: 'Vaibhav', age: 28, gender: 'Male', blood_group: 'A-', phone: '09999456126'}
+      ],
+      examinations: []
     };
-    let screen = 'dash';
 
-    function getKey() { return localStorage.getItem('gkey') || ''; }
-    function setKey(k) { localStorage.setItem('gkey', k); updateStatus(); }
-    function updateStatus() {
-      const el = document.getElementById('apiStatus');
-      if(el) el.innerHTML = getKey() ? '<span class="text-xs text-green-600">✅</span>' : '<span class="text-xs text-red-600">⚠️</span>';
+    let currentScreen = 'dashboard';
+    let currentStep = 1;
+    let recognition = null;
+    let currentInputField = null;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-IN';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        if (currentInputField) {
+          const field = document.getElementById(currentInputField);
+          if (field.tagName === 'TEXTAREA') {
+            field.value += (field.value ? '\n' : '') + transcript;
+          } else {
+            field.value = transcript;
+          }
+        }
+        stopVoiceInput();
+      };
+
+      recognition.onerror = function(event) {
+        stopVoiceInput();
+        if (event.error !== 'no-speech') {
+          alert('Voice input error. Please try again.');
+        }
+      };
+
+      recognition.onend = function() {
+        stopVoiceInput();
+      };
     }
 
-    window.saveKey = function() {
-      const k = document.getElementById('apiKeyInput').value.trim();
-      if(!k) { alert('Enter key'); return; }
-      setKey(k);
-      alert('✅ Saved!');
-      document.getElementById('apiKeyInput').value = '';
+    window.startVoiceInput = function(fieldId) {
+      if (!recognition) {
+        alert('Voice input not supported. Use Chrome or Edge.');
+        return;
+      }
+      currentInputField = fieldId;
+      const micBtn = event.target;
+      micBtn.classList.add('listening');
+      recognition.start();
     };
 
-    window.clearKey = function() {
-      if(confirm('Clear?')) { localStorage.removeItem('gkey'); updateStatus(); alert('✅ Cleared!'); }
-    };
+    function stopVoiceInput() {
+      document.querySelectorAll('.mic-btn').forEach(btn => btn.classList.remove('listening'));
+      currentInputField = null;
+    }
 
-    window.testKey = async function() {
-      const k = getKey();
-      if(!k) { alert('Save key first'); return; }
-      
-      const btn = document.getElementById('testBtn');
-      const res = document.getElementById('testResult');
-      
-      btn.disabled = true;
-      btn.innerHTML = '<div class="ai-loading"></div> Testing...';
-      res.innerHTML = '';
-
-      try {
-        // TRYING: v1 API with gemini-1.5-flash-001
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${k}`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({contents:[{parts:[{text:'Hi'}]}]})
-        });
-
-        if(r.ok) {
-          res.innerHTML = '<div class="p-3 bg-green-50 border-2 border-green-300 rounded text-green-700"><strong>✅ Success!</strong> API works with v1/gemini-1.5-flash-001!</div>';
-        } else {
-          const e = await r.json();
-          res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.error?.message || 'Failed'}<br><br><small>Tried: v1/models/gemini-1.5-flash-001</small></div>`;
-        }
-      } catch(e) {
-        res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '🧪 Test';
+    window.updatePatientInfo = function() {
+      const patientId = document.getElementById('examPatient').value;
+      const patient = DB.patients.find(p => p.id === patientId);
+      if (patient) {
+        window.currentPatient = patient;
       }
     };
 
-    async function callAI(prompt) {
-      const k = getKey();
-      if(!k) throw new Error('Configure API key');
+    window.nextStep = function(step) {
+      document.getElementById(`step${currentStep}`).classList.remove('active');
+      document.getElementById(`step${currentStep}-indicator`).classList.add('completed');
+      document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
+      currentStep = step;
+      document.getElementById(`step${step}`).classList.add('active');
+      document.getElementById(`step${step}-indicator`).classList.add('active');
+    };
 
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${k}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.7,maxOutputTokens:2048}
-        })
-      });
+    window.prevStep = function(step) {
+      document.getElementById(`step${currentStep}`).classList.remove('active');
+      document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
+      currentStep = step;
+      document.getElementById(`step${step}`).classList.add('active');
+      document.getElementById(`step${step}-indicator`).classList.add('active');
+      document.getElementById(`step${currentStep + 1}-indicator`).classList.remove('completed');
+    };
 
-      if(!r.ok) {
-        const e = await r.json();
-        throw new Error(e.error?.message || 'API Error');
+    window.calculateBMI = function() {
+      const weight = parseFloat(document.getElementById('vitalWeight').value);
+      const height = parseFloat(document.getElementById('vitalHeight').value);
+      
+      if (weight && height) {
+        const heightM = height / 100;
+        const bmi = (weight / (heightM * heightM)).toFixed(1);
+        
+        document.getElementById('bmiValue').textContent = bmi;
+        document.getElementById('bmiDisplay').style.display = 'block';
+        
+        let category = '';
+        if (bmi < 18.5) category = 'Underweight';
+        else if (bmi < 25) category = 'Normal weight';
+        else if (bmi < 30) category = 'Overweight';
+        else category = 'Obese';
+        
+        document.getElementById('bmiCategory').textContent = `Category: ${category}`;
+      }
+    };
+
+    const TEMPLATES = {
+      fever: {complaint: 'Fever for 3 days', diagnosis: 'Viral Fever', treatment: `Tab Paracetamol 650mg - TDS - 5 days (after meals)\nTab Cetirizine 10mg - OD - 5 days (at bedtime)\n\nAdvice:\n- Rest and adequate sleep\n- Drink plenty of fluids\n- Avoid cold foods`, followupNotes: 'Review if fever persists > 3 days'},
+      cold: {complaint: 'Cold and cough for 2 days', diagnosis: 'Upper Respiratory Tract Infection', treatment: `Tab Cetirizine 10mg - OD - 5 days\nSyrup Salbutamol 5ml - TDS - 5 days\nTab Paracetamol 650mg - SOS for fever\n\nAdvice:\n- Steam inhalation twice daily\n- Warm water gargles`, followupNotes: 'Review if symptoms worsen'},
+      gastritis: {complaint: 'Acidity and stomach pain', diagnosis: 'Acute Gastritis', treatment: `Tab Pantoprazole 40mg - OD - 14 days (before breakfast)\nTab Domperidone 10mg - TDS - 5 days (before meals)\n\nAdvice:\n- Avoid spicy and oily foods\n- Small frequent meals`, followupNotes: 'Review after 2 weeks'},
+      uti: {complaint: 'Burning urination', diagnosis: 'Urinary Tract Infection', treatment: `Tab Norfloxacin 400mg - BD - 5 days\nTab Citralka 2 tsp - TDS - 5 days\n\nAdvice:\n- Drink 3-4 liters water daily`, followupNotes: 'Urine culture if not improved'},
+      hypertension: {complaint: 'High blood pressure', diagnosis: 'Essential Hypertension', treatment: `Tab Amlodipine 5mg - OD - 30 days (morning)\nTab Aspirin 75mg - OD - 30 days (after dinner)\n\nAdvice:\n- Low salt diet\n- Regular exercise\n- Monitor BP daily`, followupNotes: 'Review after 1 month with BP chart'},
+      diabetes: {complaint: 'High blood sugar', diagnosis: 'Type 2 Diabetes Mellitus', treatment: `Tab Metformin 500mg - BD - 30 days (after meals)\nTab Glimepiride 1mg - OD - 30 days (before breakfast)\n\nAdvice:\n- Diabetic diet\n- Regular exercise\n- Monitor blood sugar`, followupNotes: 'Review after 1 month with sugar reports'}
+    };
+
+    window.applyTemplate = function(type) {
+      const template = TEMPLATES[type];
+      if (template) {
+        document.getElementById('examComplaint').value = template.complaint;
+        document.getElementById('examDiagnosis').value = template.diagnosis;
+        document.getElementById('examTreatment').value = template.treatment;
+        document.getElementById('examFollowupNotes').value = template.followupNotes;
+        alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} template applied!`);
+      }
+    };
+
+    window.showSuggestions = function() {
+      const diagnosis = document.getElementById('examDiagnosis').value.toLowerCase();
+      let suggestions = '';
+
+      if (diagnosis.includes('fever')) {
+        suggestions = 'Tab Paracetamol 650mg TDS\nTab Cetirizine 10mg OD';
+      } else if (diagnosis.includes('cold') || diagnosis.includes('cough')) {
+        suggestions = 'Tab Cetirizine 10mg OD\nSyrup Salbutamol 5ml TDS';
+      } else if (diagnosis.includes('gastritis') || diagnosis.includes('acidity')) {
+        suggestions = 'Tab Pantoprazole 40mg OD\nTab Domperidone 10mg TDS';
+      } else {
+        suggestions = 'Enter diagnosis first for smart suggestions';
       }
 
-      const d = await r.json();
-      return d.candidates[0].content.parts[0].text;
-    }
-
-    window.diagnose = async function() {
-      const c = document.getElementById('complaint').value;
-      if(!c) { alert('Enter complaint'); return; }
-
-      const btn = document.getElementById('diagBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="ai-loading"></div> Analyzing...';
-
-      try {
-        const a = document.getElementById('age').value;
-        const g = document.getElementById('gender').value;
-        
-        const prompt = `Medical AI: Analyze and provide diagnosis in JSON.
-
-Patient: ${a}Y ${g}
-Complaint: ${c}
-
-Return JSON:
-{
-  "diagnoses": [{"name": "Diagnosis", "confidence": 85, "description": "Why", "tests": ["Test1"]}],
-  "recommendations": "Advice"
-}`;
-
-        const text = await callAI(prompt);
-        
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch {
-          const m = text.match(/\{[\s\S]*\}/);
-          if(m) json = JSON.parse(m[0]);
-          else throw new Error('Invalid response');
-        }
-        
-        let html = '<div class="p-4 bg-purple-50 border-2 border-purple-300 rounded"><h3 class="font-bold mb-3">🔬 Results</h3>';
-        
-        if(json.diagnoses) {
-          json.diagnoses.forEach((d,i) => {
-            html += `<div class="mb-2 p-3 bg-white rounded border">
-              <h4 class="font-bold">${i+1}. ${d.name} (${d.confidence}%)</h4>
-              <p class="text-sm mt-1">${d.description}</p>
-              ${d.tests ? `<p class="text-xs mt-1"><strong>Tests:</strong> ${d.tests.join(', ')}</p>` : ''}
-            </div>`;
-          });
-        }
-        
-        if(json.recommendations) {
-          html += `<div class="mt-2 p-3 bg-blue-50 rounded"><strong>💡:</strong> ${json.recommendations}</div>`;
-        }
-        
-        html += '</div>';
-        document.getElementById('aiResult').innerHTML = html;
-        
-      } catch(e) {
-        let msg = e.message;
-        if(msg.includes('Configure')) msg += '<br><br><button onclick="openModal(\'settingsModal\')" class="btn btn-primary">⚙️ Settings</button>';
-        document.getElementById('aiResult').innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>Error:</strong><br>${msg}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '🔬 Diagnose';
+      if (confirm('Apply these suggestions?\n\n' + suggestions)) {
+        document.getElementById('examTreatment').value = suggestions;
       }
     };
 
     window.savePatient = function(e) {
       e.preventDefault();
       const p = {
-        id:'p'+Date.now(),
-        pid:'P'+String(DB.patients.length+1).padStart(3,'0'),
-        first:document.getElementById('patFirst').value,
-        last:document.getElementById('patLast').value,
-        age:parseInt(document.getElementById('patAge').value),
-        gender:document.getElementById('patGender').value,
-        phone:document.getElementById('patPhone').value
+        id: 'p' + Date.now(),
+        patient_id: 'P' + String(DB.patients.length + 1).padStart(3, '0'),
+        first_name: document.getElementById('patFirstName').value,
+        last_name: document.getElementById('patLastName').value,
+        age: parseInt(document.getElementById('patAge').value),
+        gender: document.getElementById('patGender').value,
+        blood_group: document.getElementById('patBlood').value,
+        phone: document.getElementById('patPhone').value,
+        email: document.getElementById('patEmail').value,
+        address: document.getElementById('patAddress').value,
+        allergies: document.getElementById('patAllergies').value,
+        current_medications: document.getElementById('patCurrentMeds').value,
+        past_medical_history: document.getElementById('patPastHistory').value,
+        insurance_provider: document.getElementById('patInsuranceProvider').value,
+        policy_number: document.getElementById('patPolicyNumber').value
       };
       DB.patients.push(p);
-      closeModal('patModal');
-      alert('✅ Saved!');
+      closeModal('patientModal');
+      currentStep = 1;
+      alert('✅ Patient saved!');
       render();
     };
 
-    window.saveExam = function(e) {
+    window.saveExamination = function(e) {
       e.preventDefault();
-      const ex = {
-        id:'e'+Date.now(),
-        pid:document.getElementById('examPatient').value,
-        date:new Date().toISOString().split('T')[0],
-        complaint:document.getElementById('examComplaint').value,
-        diagnosis:document.getElementById('examDiag').value,
-        treatment:document.getElementById('examTreat').value
+      const exam = {
+        id: 'e' + Date.now(),
+        patient_id: document.getElementById('examPatient').value,
+        date: new Date().toISOString().split('T')[0],
+        vitals: {
+          bp: document.getElementById('vitalBP').value,
+          temp: document.getElementById('vitalTemp').value,
+          pulse: document.getElementById('vitalPulse').value,
+          spo2: document.getElementById('vitalSpO2').value,
+          weight: document.getElementById('vitalWeight').value,
+          height: document.getElementById('vitalHeight').value,
+          bmi: document.getElementById('bmiValue').textContent
+        },
+        chief_complaint: document.getElementById('examComplaint').value,
+        hpi: document.getElementById('examHPI').value,
+        physical_exam: {
+          general: document.getElementById('examGeneral').value,
+          cardio: document.getElementById('examCardio').value,
+          resp: document.getElementById('examResp').value,
+          abdomen: document.getElementById('examAbdomen').value
+        },
+        diagnosis: document.getElementById('examDiagnosis').value,
+        treatment_plan: document.getElementById('examTreatment').value,
+        followup_date: document.getElementById('examFollowup').value,
+        followup_notes: document.getElementById('examFollowupNotes').value
       };
-      DB.exams.push(ex);
-      closeModal('examModal');
-      alert('✅ Saved!');
+      
+      DB.examinations.push(exam);
+      closeModal('examinationModal');
+      alert('✅ Examination saved!');
       render();
+    };
+
+    window.generatePrescriptionPDF = function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const patientId = document.getElementById('examPatient').value;
+      const patient = DB.patients.find(p => p.id === patientId);
+      
+      if (!patient) { alert('Select patient first'); return; }
+
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont(undefined, 'bold');
+      doc.text('City Health Clinic', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text('Dr. Rajesh Sharma, MBBS, MD | Reg: MCI-12345', 105, 28, { align: 'center' });
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('PRESCRIPTION', 105, 50, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60);
+      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 68);
+      doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 75);
+
+      doc.setFont(undefined, 'bold');
+      doc.text('Diagnosis:', 20, 90);
+      doc.setFont(undefined, 'normal');
+      doc.text(document.getElementById('examDiagnosis').value, 20, 97);
+
+      doc.setFont(undefined, 'bold');
+      doc.text('Treatment:', 20, 110);
+      doc.setFont(undefined, 'normal');
+      const treatment = doc.splitTextToSize(document.getElementById('examTreatment').value, 170);
+      doc.text(treatment, 20, 117);
+
+      doc.save(`Rx_${patient.patient_id}_${new Date().toISOString().split('T')[0]}.pdf`);
+      alert('✅ PDF generated!');
     };
 
     window.openModal = function(id) {
       document.getElementById(id).classList.add('active');
-      if(id==='settingsModal') {
-        updateStatus();
-        const k = getKey();
-        if(k) document.getElementById('apiKeyInput').placeholder = `${k.substring(0,10)}...${k.substring(k.length-4)}`;
+      
+      if (id === 'patientModal') {
+        currentStep = 1;
+        document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'completed'));
+        document.getElementById('step1').classList.add('active');
+        document.getElementById('step1-indicator').classList.add('active');
       }
-      if(id==='examModal') {
-        const sel = document.getElementById('examPatient');
-        sel.innerHTML = '<option value="">Select Patient</option>' + DB.patients.map(p => `<option value="${p.id}">${p.pid} - ${p.first} ${p.last}</option>`).join('');
-      }
-      if(id==='aiModal') {
-        const c = document.getElementById('examComplaint')?.value || '';
-        document.getElementById('complaint').value = c;
-        document.getElementById('aiResult').innerHTML = '';
+      
+      if (id === 'examinationModal') {
+        const select = document.getElementById('examPatient');
+        select.innerHTML = DB.patients.map(p => `<option value="${p.id}">${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('');
+        updatePatientInfo();
       }
     };
 
-    window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
-    window.switchScreen = function(s) { screen = s; render(); };
+    window.closeModal = function(id) {
+      document.getElementById(id).classList.remove('active');
+    };
+
+    window.switchScreen = function(screen) {
+      currentScreen = screen;
+      render();
+    };
 
     function render() {
-      const k = getKey();
-      const st = k ? '✅' : '⚠️';
+      const app = document.getElementById('app');
       
-      const nav = `<nav class="bg-gray-900 text-white p-4 flex justify-between">
+      const nav = `<nav class="bg-gray-900 text-white p-4 flex justify-between sticky top-0 z-50">
         <div class="flex gap-3 items-center">
-          <h3 class="font-bold">MediScript AI</h3>
+          <img src="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg" class="h-10">
+          <h3 class="font-bold text-sm">City Health Clinic</h3>
+          <span class="voice-badge">🎤 Voice</span>
+          <span class="badge badge-purple">v3.0</span>
         </div>
-        <button onclick="openModal('settingsModal')" class="btn btn-primary">${st} Settings</button>
+        <div class="flex items-center gap-3">
+          <p class="font-semibold text-sm">Dr. Rajesh Sharma</p>
+        </div>
       </nav>`;
 
       const sidebar = `<aside class="w-64 bg-gray-800 text-white p-4 min-h-screen">
-        <div class="space-y-2">
-          <a onclick="switchScreen('dash')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='dash'?'bg-gray-700':''}">📊 Dashboard</a>
-          <a onclick="switchScreen('patients')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='patients'?'bg-gray-700':''}">👥 Patients</a>
-          <a onclick="switchScreen('exams')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='exams'?'bg-gray-700':''}">🩺 Examinations</a>
-        </div>
+        <nav class="space-y-2">
+          <a onclick="switchScreen('dashboard')" class="nav-link ${currentScreen === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
+          <a onclick="switchScreen('patients')" class="nav-link ${currentScreen === 'patients' ? 'active' : ''}">👥 Patients</a>
+          <a onclick="switchScreen('examinations')" class="nav-link ${currentScreen === 'examinations' ? 'active' : ''}">🩺 Examinations</a>
+        </nav>
       </aside>`;
 
       let content = '';
 
-      if(screen==='dash') {
-        content = `<h1 class="text-3xl font-bold mb-6">👨‍⚕️ Dashboard</h1>
+      if (currentScreen === 'dashboard') {
+        content = `<h1 class="text-2xl font-bold mb-6">👨‍⚕️ Complete Doctor Dashboard</h1>
           <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="card cursor-pointer hover:shadow-lg" onclick="switchScreen('patients')">
-              <p class="text-gray-600 text-sm">Patients</p>
-              <p class="text-3xl font-bold text-green-600">${DB.patients.length}</p>
-            </div>
-            <div class="card cursor-pointer hover:shadow-lg" onclick="switchScreen('exams')">
-              <p class="text-gray-600 text-sm">Examinations</p>
-              <p class="text-3xl font-bold text-blue-600">${DB.exams.length}</p>
-            </div>
-            <div class="card cursor-pointer hover:shadow-lg" onclick="openModal('settingsModal')">
-              <p class="text-gray-600 text-sm">AI Status</p>
-              <p class="text-lg font-bold">${k?'✅ Ready':'⚠️ Configure'}</p>
-            </div>
+            <div class="stat-card" onclick="switchScreen('patients')"><p class="text-gray-600 text-sm mb-1">Patients</p><p class="text-3xl font-bold text-green-600">${DB.patients.length}</p></div>
+            <div class="stat-card" onclick="switchScreen('examinations')"><p class="text-gray-600 text-sm mb-1">Examinations</p><p class="text-3xl font-bold text-blue-600">${DB.examinations.length}</p></div>
+            <div class="stat-card"><p class="text-gray-600 text-sm mb-1">🎤 Voice</p><p class="text-3xl font-bold text-red-600">Enabled</p></div>
           </div>
-          <div class="card">
-            <h3 class="font-bold mb-4">⚡ Quick Actions</h3>
-            <button onclick="openModal('patModal')" class="btn btn-success mr-2">+ New Patient</button>
-            <button onclick="openModal('examModal')" class="btn btn-primary">🩺 New Exam</button>
+          <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+              <h3 class="font-bold mb-4">⚡ Quick Actions</h3>
+              <button onclick="openModal('patientModal')" class="btn btn-success w-full mb-2">+ New Patient (3-Step)</button>
+              <button onclick="openModal('examinationModal')" class="btn btn-primary w-full">🩺 New Exam (Voice)</button>
+            </div>
+            <div class="card">
+              <h3 class="font-bold mb-4">✅ System Features</h3>
+              <ul class="text-sm space-y-2">
+                <li>✅ 3-Step Patient Registration</li>
+                <li>✅ Complete Vital Signs + BMI</li>
+                <li>✅ Voice Input on All Fields</li>
+                <li>✅ 6 Quick Templates</li>
+                <li>✅ Smart Suggestions</li>
+                <li>✅ Professional PDF Generation</li>
+                <li>⏳ AI Diagnosis (Coming Soon)</li>
+              </ul>
+            </div>
           </div>`;
-      } else if(screen==='patients') {
-        content = `<h1 class="text-2xl font-bold mb-4">👥 Patients</h1>
-          <button onclick="openModal('patModal')" class="btn btn-success mb-4">+ Register</button>
+      } else if (currentScreen === 'patients') {
+        content = `<h1 class="text-2xl font-bold mb-6">👥 Patients</h1>
+          <div class="mb-4"><button onclick="openModal('patientModal')" class="btn btn-success">+ Register (3-Step Wizard)</button></div>
           <div class="card">
-            <table class="w-full">
-              <thead><tr class="border-b"><th class="text-left p-2">ID</th><th class="text-left p-2">Name</th><th class="text-left p-2">Age</th><th class="text-left p-2">Phone</th></tr></thead>
-              <tbody>${DB.patients.map(p => `<tr class="border-b"><td class="p-2">${p.pid}</td><td class="p-2">${p.first} ${p.last}</td><td class="p-2">${p.age}Y ${p.gender}</td><td class="p-2">${p.phone}</td></tr>`).join('')}</tbody>
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Blood</th><th>Phone</th><th>Insurance</th></tr></thead>
+              <tbody>${DB.patients.map(p => `<tr><td class="font-semibold">${p.patient_id}</td><td>${p.first_name} ${p.last_name}</td><td>${p.age}Y ${p.gender}</td><td>${p.blood_group}</td><td class="text-xs">${p.phone}</td><td class="text-xs">${p.insurance_provider || 'None'}</td></tr>`).join('')}</tbody>
             </table>
           </div>`;
-      } else if(screen==='exams') {
-        content = `<h1 class="text-2xl font-bold mb-4">🩺 Examinations</h1>
-          <button onclick="openModal('examModal')" class="btn btn-success mb-4">+ New Exam</button>
+      } else if (currentScreen === 'examinations') {
+        content = `<h1 class="text-2xl font-bold mb-6">🩺 Examinations</h1>
+          <div class="mb-4"><button onclick="openModal('examinationModal')" class="btn btn-success">+ New Exam (Voice + Templates)</button></div>
           <div class="card">
-            ${DB.exams.length===0 ? '<p class="text-gray-500">No examinations yet</p>' : `<table class="w-full">
-              <thead><tr class="border-b"><th class="text-left p-2">Date</th><th class="text-left p-2">Patient</th><th class="text-left p-2">Complaint</th><th class="text-left p-2">Diagnosis</th></tr></thead>
-              <tbody>${DB.exams.map(e => {
-                const p = DB.patients.find(pt => pt.id === e.pid);
-                return `<tr class="border-b"><td class="p-2">${e.date}</td><td class="p-2">${p.first} ${p.last}</td><td class="p-2">${e.complaint}</td><td class="p-2">${e.diagnosis}</td></tr>`;
+            ${DB.examinations.length === 0 ? '<p class="text-gray-500">No examinations yet. Try voice-powered examination!</p>' : `<table>
+              <thead><tr><th>Date</th><th>Patient</th><th>Complaint</th><th>Diagnosis</th><th>Follow-up</th></tr></thead>
+              <tbody>${DB.examinations.map(e => {
+                const p = DB.patients.find(pt => pt.id === e.patient_id);
+                return `<tr><td>${e.date}</td><td>${p.first_name} ${p.last_name}</td><td class="text-xs">${e.chief_complaint}</td><td>${e.diagnosis}</td><td>${e.followup_date || 'None'}</td></tr>`;
               }).join('')}</tbody>
             </table>`}
           </div>`;
       }
 
-      document.getElementById('app').innerHTML = `${nav}<div class="flex">${sidebar}<main class="flex-1 p-6">${content}</main></div>`;
+      app.innerHTML = `<div>${nav}<div class="flex">${sidebar}<main class="flex-1 p-6">${content}</main></div></div>`;
     }
 
-    updateStatus();
+    console.log('✅ MediScript v3.0 - Complete System Restored');
+    console.log('Features: Voice Input, Templates, BMI, PDF, Smart Suggestions');
+    console.log('AI Diagnosis: Coming Soon (API configuration needed)');
     render();
-    console.log('✅ MediScript - Using v1/gemini-1.5-flash-001');
   </script>
 </body>
 </html>
