@@ -3,258 +3,231 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediScript Pro - Enterprise Healthcare Platform</title>
+  <title>MediScript - Smart Healthcare Platform</title>
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    body.dark { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-    
-    /* Glass Morphism */
-    .glass { 
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-    .dark .glass { 
-      background: rgba(30, 30, 46, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'Roboto', -apple-system, sans-serif;
+      background: #f8f9fa;
+      color: #333;
     }
     
-    /* Modern Cards */
-    .card {
+    /* Practo Color Palette */
+    :root {
+      --primary: #14BEF0;
+      --primary-dark: #0FA8D6;
+      --success: #3AAA35;
+      --danger: #E74C3C;
+      --warning: #F39C12;
+      --text-dark: #2C3E50;
+      --text-light: #7F8C8D;
+      --border: #E0E0E0;
+      --bg-light: #F8F9FA;
+    }
+    
+    /* Header */
+    .header {
       background: white;
-      border-radius: 24px;
-      padding: 32px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(0, 0, 0, 0.04);
-    }
-    .dark .card {
-      background: rgba(30, 30, 46, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
-    }
-    
-    /* Stat Cards */
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px;
-      padding: 28px;
-      color: white;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      transition: all 0.6s;
-    }
-    .stat-card:hover::before {
-      top: -60%;
-      right: -60%;
-    }
-    .stat-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-    }
-    .stat-card.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .stat-card.blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    .stat-card.orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-    
-    /* Buttons */
-    .btn {
-      padding: 14px 28px;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 15px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-    .btn:hover::before {
-      width: 300px;
-      height: 300px;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    .btn-success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
-    }
-    .btn-secondary {
-      background: white;
-      color: #1f2937;
-      border: 2px solid #e5e7eb;
-    }
-    .dark .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border-color: rgba(255, 255, 255, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
     
-    /* Form Inputs */
-    .form-input {
-      width: 100%;
-      padding: 14px 18px;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      font-size: 15px;
-      transition: all 0.3s;
-      background: white;
-    }
-    .form-input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-      transform: translateY(-1px);
-    }
-    .dark .form-input {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: white;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
     }
     
     /* Sidebar */
     .sidebar {
-      width: 280px;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(0, 0, 0, 0.06);
-      padding: 24px;
-      height: 100vh;
+      width: 260px;
+      background: white;
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      height: calc(100vh - 65px);
       position: sticky;
-      top: 0;
-      overflow-y: auto;
-    }
-    .dark .sidebar {
-      background: rgba(20, 20, 30, 0.98);
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      top: 65px;
     }
     
     .nav-item {
-      padding: 14px 18px;
-      border-radius: 12px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      transition: all 0.3s;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       gap: 12px;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all 0.2s;
       font-weight: 500;
-      color: #6b7280;
+      font-size: 15px;
     }
+    
     .nav-item:hover {
-      background: rgba(102, 126, 234, 0.08);
-      color: #667eea;
-      transform: translateX(4px);
+      background: #F0F9FF;
+      color: var(--primary);
     }
+    
     .nav-item.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #E6F7FF;
+      color: var(--primary);
+      border-left: 3px solid var(--primary);
+    }
+    
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .stat-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+    
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 8px 0;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
       color: white;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
-    .dark .nav-item {
-      color: #9ca3af;
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(20, 190, 240, 0.3);
     }
-    .dark .nav-item:hover {
-      background: rgba(102, 126, 234, 0.15);
-      color: #a5b4fc;
+    
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #339930;
+      box-shadow: 0 4px 12px rgba(58, 170, 53, 0.3);
+    }
+    
+    .btn-outline {
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: white;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(20, 190, 240, 0.1);
     }
     
     /* Table */
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px;
+      border-collapse: collapse;
     }
+    
     th {
-      background: transparent;
-      padding: 16px;
+      background: #F8F9FA;
+      padding: 14px 16px;
       text-align: left;
       font-weight: 600;
       font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #6b7280;
+      color: var(--text-dark);
+      border-bottom: 2px solid var(--border);
     }
+    
     td {
-      padding: 20px 16px;
-      background: white;
-      border-top: 1px solid #f3f4f6;
-      border-bottom: 1px solid #f3f4f6;
+      padding: 16px;
+      border-bottom: 1px solid #F0F0F0;
+      font-size: 14px;
+      color: var(--text-dark);
     }
-    td:first-child {
-      border-left: 1px solid #f3f4f6;
-      border-radius: 12px 0 0 12px;
-    }
-    td:last-child {
-      border-right: 1px solid #f3f4f6;
-      border-radius: 0 12px 12px 0;
-    }
-    tr {
-      transition: all 0.3s;
-    }
+    
     tr:hover td {
-      background: #f9fafb;
-      transform: scale(1.01);
-    }
-    .dark td {
-      background: rgba(30, 30, 46, 0.6);
-      border-color: rgba(255, 255, 255, 0.05);
-      color: #e5e7eb;
-    }
-    .dark tr:hover td {
-      background: rgba(40, 40, 56, 0.8);
+      background: #F8F9FA;
     }
     
     /* Modal */
@@ -265,123 +238,142 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 9999;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.3s;
     }
+    
     .modal.active { display: flex; }
+    
     .modal-content {
       background: white;
-      border-radius: 24px;
-      padding: 40px;
-      max-width: 1200px;
+      border-radius: 8px;
+      padding: 32px;
+      max-width: 800px;
       max-height: 90vh;
       overflow-y: auto;
       width: 90%;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
-      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .dark .modal-content {
-      background: #1e1e2e;
-      color: white;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     }
     
-    /* Badges */
-    .badge {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge-success { background: #d1fae5; color: #065f46; }
-    .badge-warning { background: #fef3c7; color: #92400e; }
-    .badge-purple { background: #ede9fe; color: #6b21a8; }
-    .badge-blue { background: #dbeafe; color: #1e40af; }
-    
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { 
-      background: rgba(102, 126, 234, 0.3);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(102, 126, 234, 0.5); }
-    
-    /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      padding: 20px 32px;
+    .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .dark .header {
-      background: rgba(20, 20, 30, 0.98);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
     }
     
-    /* Chart Container */
-    .chart-container {
-      position: relative;
-      height: 300px;
-      margin: 20px 0;
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-dark);
     }
     
-    /* Recent Activity */
-    .activity-item {
-      padding: 16px;
+    .close-btn {
+      font-size: 28px;
+      color: var(--text-light);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    
+    .close-btn:hover {
+      background: #F0F0F0;
+      color: var(--text-dark);
+    }
+    
+    /* Badge */
+    .badge {
+      padding: 4px 12px;
       border-radius: 12px;
-      background: #f9fafb;
-      margin-bottom: 12px;
-      border-left: 4px solid #667eea;
-      transition: all 0.3s;
-    }
-    .activity-item:hover {
-      background: #f3f4f6;
-      transform: translateX(4px);
-    }
-    .dark .activity-item {
-      background: rgba(255, 255, 255, 0.05);
-      border-left-color: #a5b4fc;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
     }
     
-    /* Loading */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .badge-primary { background: #E6F7FF; color: var(--primary); }
+    .badge-success { background: #E8F5E9; color: var(--success); }
+    .badge-warning { background: #FFF3E0; color: var(--warning); }
+    .badge-danger { background: #FFEBEE; color: var(--danger); }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-state-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+    
+    .empty-state-text {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 24px;
+    }
+    
+    /* Page Header */
+    .page-header {
+      margin-bottom: 24px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    
+    /* Quick Actions */
+    .quick-action {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .quick-action:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(20, 190, 240, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .quick-action-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    
+    .quick-action-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-dark);
     }
   </style>
 </head>
@@ -391,62 +383,63 @@
   <!-- Patient Modal -->
   <div id="patientModal" class="modal">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-8">
-        <div>
-          <h2 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">New Patient Registration</h2>
-          <p class="text-gray-500 mt-2">Complete patient information in 3 simple steps</p>
-        </div>
-        <button onclick="closeModal('patientModal')" class="text-4xl text-gray-400 hover:text-gray-600 transition">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Register New Patient</h2>
+        <button class="close-btn" onclick="closeModal('patientModal')">&times;</button>
       </div>
-      <form onsubmit="savePatient(event)" class="space-y-6">
-        <div class="grid grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold mb-2">First Name *</label>
+      <form onsubmit="savePatient(event)">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">First Name *</label>
             <input type="text" id="patFirstName" class="form-input" required>
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Last Name *</label>
+          <div class="form-group">
+            <label class="form-label">Last Name *</label>
             <input type="text" id="patLastName" class="form-input" required>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-6">
-          <div>
-            <label class="block text-sm font-semibold mb-2">Age *</label>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="form-group">
+            <label class="form-label">Age *</label>
             <input type="number" id="patAge" class="form-input" required>
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Gender *</label>
+          <div class="form-group">
+            <label class="form-label">Gender *</label>
             <select id="patGender" class="form-input">
               <option>Male</option>
               <option>Female</option>
               <option>Other</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Blood Group</label>
+          <div class="form-group">
+            <label class="form-label">Blood Group</label>
             <select id="patBlood" class="form-input">
               <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
               <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold mb-2">Phone *</label>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
             <input type="tel" id="patPhone" class="form-input" required>
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Email</label>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
             <input type="email" id="patEmail" class="form-input">
           </div>
         </div>
-        <div>
-          <label class="block text-sm font-semibold mb-2">Known Allergies</label>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <textarea id="patAddress" class="form-input" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Known Allergies</label>
           <textarea id="patAllergies" class="form-input" rows="2" placeholder="e.g., Penicillin, Peanuts"></textarea>
         </div>
-        <div class="flex gap-4 pt-4">
-          <button type="submit" class="btn btn-success flex-1">✅ Save Patient</button>
-          <button type="button" onclick="closeModal('patientModal')" class="btn btn-secondary">Cancel</button>
+        <div class="flex gap-3 mt-6">
+          <button type="submit" class="btn btn-success flex-1">Save Patient</button>
+          <button type="button" onclick="closeModal('patientModal')" class="btn btn-outline">Cancel</button>
         </div>
       </form>
     </div>
@@ -455,48 +448,53 @@
   <!-- Examination Modal -->
   <div id="examModal" class="modal">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-8">
-        <div>
-          <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Clinical Examination</h2>
-          <p class="text-gray-500 mt-2">Record patient examination and prescription</p>
-        </div>
-        <button onclick="closeModal('examModal')" class="text-4xl text-gray-400 hover:text-gray-600 transition">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">New Examination</h2>
+        <button class="close-btn" onclick="closeModal('examModal')">&times;</button>
       </div>
-      <form onsubmit="saveExam(event)" class="space-y-6">
-        <div>
-          <label class="block text-sm font-semibold mb-2">Select Patient *</label>
+      <form onsubmit="saveExam(event)">
+        <div class="form-group">
+          <label class="form-label">Select Patient *</label>
           <select id="examPatient" class="form-input" required></select>
         </div>
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-semibold mb-2">BP</label>
+        <div class="grid grid-cols-4 gap-4">
+          <div class="form-group">
+            <label class="form-label">BP</label>
             <input type="text" id="vitalBP" class="form-input" placeholder="120/80">
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Temp (°F)</label>
+          <div class="form-group">
+            <label class="form-label">Temp (°F)</label>
             <input type="text" id="vitalTemp" class="form-input" placeholder="98.6">
           </div>
-          <div>
-            <label class="block text-sm font-semibold mb-2">Pulse</label>
+          <div class="form-group">
+            <label class="form-label">Pulse</label>
             <input type="text" id="vitalPulse" class="form-input" placeholder="72">
           </div>
+          <div class="form-group">
+            <label class="form-label">SpO2 (%)</label>
+            <input type="text" id="vitalSpO2" class="form-input" placeholder="98">
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-semibold mb-2">Chief Complaint *</label>
+        <div class="form-group">
+          <label class="form-label">Chief Complaint *</label>
           <textarea id="examComplaint" class="form-input" rows="2" required></textarea>
         </div>
-        <div>
-          <label class="block text-sm font-semibold mb-2">Diagnosis *</label>
+        <div class="form-group">
+          <label class="form-label">Diagnosis *</label>
           <input type="text" id="examDiagnosis" class="form-input" required>
         </div>
-        <div>
-          <label class="block text-sm font-semibold mb-2">Treatment Plan</label>
+        <div class="form-group">
+          <label class="form-label">Treatment Plan</label>
           <textarea id="examTreatment" class="form-input" rows="4"></textarea>
         </div>
-        <div class="flex gap-4 pt-4">
-          <button type="submit" class="btn btn-success flex-1">✅ Save Examination</button>
-          <button type="button" onclick="generatePDF()" class="btn btn-primary">📄 Generate PDF</button>
-          <button type="button" onclick="closeModal('examModal')" class="btn btn-secondary">Cancel</button>
+        <div class="form-group">
+          <label class="form-label">Follow-up Date</label>
+          <input type="date" id="examFollowup" class="form-input">
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="submit" class="btn btn-success flex-1">Save Examination</button>
+          <button type="button" onclick="generatePDF()" class="btn btn-primary">Generate PDF</button>
+          <button type="button" onclick="closeModal('examModal')" class="btn btn-outline">Cancel</button>
         </div>
       </form>
     </div>
@@ -513,17 +511,6 @@
     };
 
     let currentScreen = 'dashboard';
-    let darkMode = localStorage.getItem('darkMode') === 'true';
-    let charts = {};
-
-    if (darkMode) document.body.classList.add('dark');
-
-    window.toggleDarkMode = function() {
-      darkMode = !darkMode;
-      document.body.classList.toggle('dark');
-      localStorage.setItem('darkMode', darkMode);
-      render();
-    };
 
     window.openModal = function(id) {
       document.getElementById(id).classList.add('active');
@@ -554,6 +541,7 @@
         blood_group: document.getElementById('patBlood').value,
         phone: document.getElementById('patPhone').value,
         email: document.getElementById('patEmail').value,
+        address: document.getElementById('patAddress').value,
         allergies: document.getElementById('patAllergies').value
       };
       DB.patients.push(p);
@@ -572,11 +560,13 @@
         vitals: {
           bp: document.getElementById('vitalBP').value,
           temp: document.getElementById('vitalTemp').value,
-          pulse: document.getElementById('vitalPulse').value
+          pulse: document.getElementById('vitalPulse').value,
+          spo2: document.getElementById('vitalSpO2').value
         },
         chief_complaint: document.getElementById('examComplaint').value,
         diagnosis: document.getElementById('examDiagnosis').value,
-        treatment_plan: document.getElementById('examTreatment').value
+        treatment_plan: document.getElementById('examTreatment').value,
+        followup_date: document.getElementById('examFollowup').value
       };
       DB.examinations.push(exam);
       localStorage.setItem('examinations', JSON.stringify(DB.examinations));
@@ -590,91 +580,76 @@
       const doc = new jsPDF();
       const patientId = document.getElementById('examPatient').value;
       const patient = DB.patients.find(p => p.id === patientId);
-      if (!patient) { alert('Select patient'); return; }
+      if (!patient) { alert('Select patient first'); return; }
 
-      doc.setFillColor(102, 126, 234);
-      doc.rect(0, 0, 210, 50, 'F');
+      // Header
+      doc.setFillColor(20, 190, 240);
+      doc.rect(0, 0, 210, 40, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
+      doc.setFontSize(24);
       doc.setFont(undefined, 'bold');
-      doc.text('MediScript Pro', 105, 20, { align: 'center' });
-      doc.setFontSize(12);
+      doc.text('MediScript', 105, 18, { align: 'center' });
+      doc.setFontSize(11);
       doc.setFont(undefined, 'normal');
-      doc.text('Enterprise Healthcare Platform', 105, 32, { align: 'center' });
+      doc.text('Smart Healthcare Platform', 105, 28, { align: 'center' });
 
+      // Patient Info
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(11);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
-      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 73);
-      doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 81);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 55);
+      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 63);
+      doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 71);
+      doc.text(`Patient ID: ${patient.patient_id}`, 150, 55);
 
+      // Diagnosis
       doc.setFont(undefined, 'bold');
-      doc.text('Diagnosis:', 20, 95);
+      doc.text('Diagnosis:', 20, 90);
       doc.setFont(undefined, 'normal');
-      doc.text(document.getElementById('examDiagnosis').value, 20, 103);
+      doc.text(document.getElementById('examDiagnosis').value, 20, 98);
 
+      // Treatment
       doc.setFont(undefined, 'bold');
-      doc.text('Treatment:', 20, 117);
+      doc.text('Treatment Plan:', 20, 115);
       doc.setFont(undefined, 'normal');
       const treatment = doc.splitTextToSize(document.getElementById('examTreatment').value, 170);
-      doc.text(treatment, 20, 125);
+      doc.text(treatment, 20, 123);
 
       doc.save(`Prescription_${patient.patient_id}_${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('✅ PDF generated!');
+      alert('✅ PDF generated successfully!');
     };
-
-    function createChart(canvasId, type, data, options) {
-      const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-      if (charts[canvasId]) charts[canvasId].destroy();
-      charts[canvasId] = new Chart(ctx, { type, data, options });
-    }
 
     function render() {
       const app = document.getElementById('app');
       
       const header = `<div class="header">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl">M</div>
-          <div>
-            <h1 class="text-xl font-bold">MediScript Pro</h1>
-            <p class="text-sm text-gray-500">Enterprise Healthcare Platform</p>
-          </div>
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#14BEF0"/>
+            <path d="M16 8L16 24M8 16L24 16" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <span>MediScript</span>
         </div>
         <div class="flex items-center gap-4">
-          <button onclick="toggleDarkMode()" class="btn btn-secondary">${darkMode ? '☀️' : '🌙'}</button>
-          <div class="flex items-center gap-3">
-            <div class="text-right">
-              <p class="font-semibold">Dr. Rajesh Sharma</p>
-              <p class="text-xs text-gray-500">MBBS, MD</p>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold">RS</div>
+          <div class="text-right">
+            <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Dr. Rajesh Sharma</div>
+            <div style="font-size: 12px; color: var(--text-light);">MBBS, MD - General Medicine</div>
           </div>
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">RS</div>
         </div>
       </div>`;
 
       const sidebar = `<div class="sidebar">
-        <div class="space-y-2">
-          <div class="nav-item ${currentScreen === 'dashboard' ? 'active' : ''}" onclick="switchScreen('dashboard')">
-            <span class="text-xl">📊</span>
-            <span>Dashboard</span>
-          </div>
-          <div class="nav-item ${currentScreen === 'patients' ? 'active' : ''}" onclick="switchScreen('patients')">
-            <span class="text-xl">👥</span>
-            <span>Patients</span>
-          </div>
-          <div class="nav-item ${currentScreen === 'examinations' ? 'active' : ''}" onclick="switchScreen('examinations')">
-            <span class="text-xl">🩺</span>
-            <span>Examinations</span>
-          </div>
-          <div class="nav-item ${currentScreen === 'analytics' ? 'active' : ''}" onclick="switchScreen('analytics')">
-            <span class="text-xl">📈</span>
-            <span>Analytics</span>
-          </div>
+        <div class="nav-item ${currentScreen === 'dashboard' ? 'active' : ''}" onclick="switchScreen('dashboard')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Dashboard</span>
         </div>
-        <div class="mt-8 p-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <p class="font-bold mb-2">🎉 New Features</p>
-          <p class="text-xs opacity-90">Enterprise-grade design, charts, and analytics now available!</p>
+        <div class="nav-item ${currentScreen === 'patients' ? 'active' : ''}" onclick="switchScreen('patients')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span>Patients</span>
+        </div>
+        <div class="nav-item ${currentScreen === 'examinations' ? 'active' : ''}" onclick="switchScreen('examinations')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Examinations</span>
         </div>
       </div>`;
 
@@ -682,102 +657,93 @@
 
       if (currentScreen === 'dashboard') {
         content = `
-          <div class="p-8">
-            <div class="mb-8">
-              <h2 class="text-3xl font-bold mb-2">Welcome back, Dr. Sharma</h2>
-              <p class="text-gray-500">Here's what's happening with your practice today</p>
+          <div style="padding: 32px;">
+            <div class="page-header">
+              <h1 class="page-title">Dashboard</h1>
+              <p class="page-subtitle">Welcome back, Dr. Sharma</p>
             </div>
             
             <div class="grid grid-cols-3 gap-6 mb-8">
+              <div class="stat-card" onclick="switchScreen('patients')">
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-number">${DB.patients.length}</div>
+                <div style="font-size: 13px; color: var(--success); font-weight: 600;">↑ 12% from last month</div>
+              </div>
+              <div class="stat-card" onclick="switchScreen('examinations')">
+                <div class="stat-label">Examinations</div>
+                <div class="stat-number">${DB.examinations.length}</div>
+                <div style="font-size: 13px; color: var(--success); font-weight: 600;">↑ 8% from last month</div>
+              </div>
               <div class="stat-card">
-                <div class="text-sm opacity-90 mb-2">Total Patients</div>
-                <div class="text-4xl font-bold mb-1">${DB.patients.length}</div>
-                <div class="text-sm opacity-75">+2 this week</div>
-              </div>
-              <div class="stat-card green">
-                <div class="text-sm opacity-90 mb-2">Examinations</div>
-                <div class="text-4xl font-bold mb-1">${DB.examinations.length}</div>
-                <div class="text-sm opacity-75">+5 this week</div>
-              </div>
-              <div class="stat-card blue">
-                <div class="text-sm opacity-90 mb-2">Success Rate</div>
-                <div class="text-4xl font-bold mb-1">98%</div>
-                <div class="text-sm opacity-75">Above average</div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6 mb-8">
-              <div class="card">
-                <h3 class="text-xl font-bold mb-6">Quick Actions</h3>
-                <div class="space-y-3">
-                  <button onclick="openModal('patientModal')" class="btn btn-success w-full justify-center">
-                    <span class="text-xl">+</span>
-                    <span>Register New Patient</span>
-                  </button>
-                  <button onclick="openModal('examModal')" class="btn btn-primary w-full justify-center">
-                    <span class="text-xl">🩺</span>
-                    <span>New Examination</span>
-                  </button>
-                </div>
-              </div>
-
-              <div class="card">
-                <h3 class="text-xl font-bold mb-6">Recent Activity</h3>
-                <div class="space-y-3">
-                  ${DB.examinations.slice(-3).reverse().map(e => {
-                    const p = DB.patients.find(pt => pt.id === e.patient_id);
-                    return `<div class="activity-item">
-                      <div class="font-semibold">${p.first_name} ${p.last_name}</div>
-                      <div class="text-sm text-gray-500">${e.diagnosis} • ${e.date}</div>
-                    </div>`;
-                  }).join('') || '<p class="text-gray-500 text-center py-8">No recent activity</p>'}
-                </div>
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-number">0</div>
+                <div style="font-size: 13px; color: var(--text-light); font-weight: 600;">No appointments scheduled</div>
               </div>
             </div>
 
             <div class="card">
-              <h3 class="text-xl font-bold mb-6">Patient Demographics</h3>
-              <div class="chart-container">
-                <canvas id="demographicsChart"></canvas>
+              <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-dark);">Quick Actions</h3>
+              <div class="grid grid-cols-4 gap-4">
+                <div class="quick-action" onclick="openModal('patientModal')">
+                  <div class="quick-action-icon">👤</div>
+                  <div class="quick-action-title">New Patient</div>
+                </div>
+                <div class="quick-action" onclick="openModal('examModal')">
+                  <div class="quick-action-icon">🩺</div>
+                  <div class="quick-action-title">New Examination</div>
+                </div>
+                <div class="quick-action" onclick="switchScreen('patients')">
+                  <div class="quick-action-icon">📋</div>
+                  <div class="quick-action-title">View Patients</div>
+                </div>
+                <div class="quick-action" onclick="switchScreen('examinations')">
+                  <div class="quick-action-icon">📊</div>
+                  <div class="quick-action-title">View Records</div>
+                </div>
               </div>
             </div>
+
+            ${DB.examinations.length > 0 ? `
+              <div class="card" style="margin-top: 24px;">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-dark);">Recent Examinations</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Patient</th>
+                      <th>Diagnosis</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${DB.examinations.slice(-5).reverse().map(e => {
+                      const p = DB.patients.find(pt => pt.id === e.patient_id);
+                      return `
+                        <tr>
+                          <td>${e.date}</td>
+                          <td style="font-weight: 600;">${p.first_name} ${p.last_name}</td>
+                          <td>${e.diagnosis}</td>
+                          <td><span class="badge badge-success">Completed</span></td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : ''}
           </div>
         `;
-        
-        setTimeout(() => {
-          const ageGroups = { '0-20': 0, '21-40': 0, '41-60': 0, '60+': 0 };
-          DB.patients.forEach(p => {
-            if (p.age <= 20) ageGroups['0-20']++;
-            else if (p.age <= 40) ageGroups['21-40']++;
-            else if (p.age <= 60) ageGroups['41-60']++;
-            else ageGroups['60+']++;
-          });
-          
-          createChart('demographicsChart', 'bar', {
-            labels: Object.keys(ageGroups),
-            datasets: [{
-              label: 'Patients by Age Group',
-              data: Object.values(ageGroups),
-              backgroundColor: 'rgba(102, 126, 234, 0.8)',
-              borderRadius: 8
-            }]
-          }, {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-          });
-        }, 100);
       } else if (currentScreen === 'patients') {
         content = `
-          <div class="p-8">
-            <div class="flex justify-between items-center mb-8">
+          <div style="padding: 32px;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <h2 class="text-3xl font-bold mb-2">Patient Management</h2>
-                <p class="text-gray-500">Manage and view all registered patients</p>
+                <h1 class="page-title">Patients</h1>
+                <p class="page-subtitle">Manage all registered patients</p>
               </div>
-              <button onclick="openModal('patientModal')" class="btn btn-success">
-                <span class="text-xl">+</span>
-                <span>New Patient</span>
+              <button onclick="openModal('patientModal')" class="btn btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Register Patient
               </button>
             </div>
 
@@ -785,8 +751,8 @@
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Patient Name</th>
+                    <th>Patient ID</th>
+                    <th>Name</th>
                     <th>Age</th>
                     <th>Gender</th>
                     <th>Blood Group</th>
@@ -796,12 +762,12 @@
                 <tbody>
                   ${DB.patients.map(p => `
                     <tr>
-                      <td><span class="badge badge-purple">${p.patient_id}</span></td>
-                      <td class="font-semibold">${p.first_name} ${p.last_name}</td>
+                      <td><span class="badge badge-primary">${p.patient_id}</span></td>
+                      <td style="font-weight: 600;">${p.first_name} ${p.last_name}</td>
                       <td>${p.age} years</td>
                       <td>${p.gender}</td>
-                      <td><span class="badge badge-blue">${p.blood_group}</span></td>
-                      <td class="text-sm">${p.phone}</td>
+                      <td><span class="badge badge-danger">${p.blood_group}</span></td>
+                      <td style="font-size: 13px;">${p.phone}</td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -811,24 +777,24 @@
         `;
       } else if (currentScreen === 'examinations') {
         content = `
-          <div class="p-8">
-            <div class="flex justify-between items-center mb-8">
+          <div style="padding: 32px;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <h2 class="text-3xl font-bold mb-2">Clinical Examinations</h2>
-                <p class="text-gray-500">View and manage patient examinations</p>
+                <h1 class="page-title">Examinations</h1>
+                <p class="page-subtitle">View and manage patient examinations</p>
               </div>
               <button onclick="openModal('examModal')" class="btn btn-primary">
-                <span class="text-xl">🩺</span>
-                <span>New Examination</span>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                New Examination
               </button>
             </div>
 
             <div class="card">
               ${DB.examinations.length === 0 ? `
-                <div class="text-center py-16">
-                  <div class="text-6xl mb-4">🩺</div>
-                  <h3 class="text-2xl font-bold mb-2">No examinations yet</h3>
-                  <p class="text-gray-500 mb-6">Start by creating your first examination</p>
+                <div class="empty-state">
+                  <div class="empty-state-icon">🩺</div>
+                  <div class="empty-state-title">No examinations yet</div>
+                  <div class="empty-state-text">Start by creating your first patient examination</div>
                   <button onclick="openModal('examModal')" class="btn btn-primary">Create Examination</button>
                 </div>
               ` : `
@@ -837,9 +803,10 @@
                     <tr>
                       <th>Date</th>
                       <th>Patient</th>
-                      <th>Complaint</th>
+                      <th>Chief Complaint</th>
                       <th>Diagnosis</th>
                       <th>Vitals</th>
+                      <th>Follow-up</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -848,10 +815,11 @@
                       return `
                         <tr>
                           <td>${e.date}</td>
-                          <td class="font-semibold">${p.first_name} ${p.last_name}</td>
-                          <td class="text-sm">${e.chief_complaint}</td>
+                          <td style="font-weight: 600;">${p.first_name} ${p.last_name}</td>
+                          <td style="font-size: 13px;">${e.chief_complaint}</td>
                           <td><span class="badge badge-success">${e.diagnosis}</span></td>
-                          <td class="text-sm">BP: ${e.vitals.bp || 'N/A'}</td>
+                          <td style="font-size: 13px;">BP: ${e.vitals.bp || 'N/A'}</td>
+                          <td style="font-size: 13px;">${e.followup_date || 'Not scheduled'}</td>
                         </tr>
                       `;
                     }).join('')}
@@ -861,68 +829,9 @@
             </div>
           </div>
         `;
-      } else if (currentScreen === 'analytics') {
-        content = `
-          <div class="p-8">
-            <div class="mb-8">
-              <h2 class="text-3xl font-bold mb-2">Analytics & Insights</h2>
-              <p class="text-gray-500">Track your practice performance</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-              <div class="card">
-                <h3 class="text-xl font-bold mb-6">Monthly Examinations</h3>
-                <div class="chart-container">
-                  <canvas id="monthlyChart"></canvas>
-                </div>
-              </div>
-
-              <div class="card">
-                <h3 class="text-xl font-bold mb-6">Top Diagnoses</h3>
-                <div class="chart-container">
-                  <canvas id="diagnosisChart"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        setTimeout(() => {
-          createChart('monthlyChart', 'line', {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-              label: 'Examinations',
-              data: [12, 19, 15, 25, 22, 30],
-              borderColor: 'rgb(102, 126, 234)',
-              backgroundColor: 'rgba(102, 126, 234, 0.1)',
-              tension: 0.4,
-              fill: true
-            }]
-          }, {
-            responsive: true,
-            maintainAspectRatio: false
-          });
-
-          createChart('diagnosisChart', 'doughnut', {
-            labels: ['Fever', 'Cold', 'Gastritis', 'UTI', 'Others'],
-            datasets: [{
-              data: [30, 25, 20, 15, 10],
-              backgroundColor: [
-                'rgba(102, 126, 234, 0.8)',
-                'rgba(17, 153, 142, 0.8)',
-                'rgba(79, 172, 254, 0.8)',
-                'rgba(250, 112, 154, 0.8)',
-                'rgba(254, 225, 64, 0.8)'
-              ]
-            }]
-          }, {
-            responsive: true,
-            maintainAspectRatio: false
-          });
-        }, 100);
       }
 
-      app.innerHTML = `${header}<div class="flex">${sidebar}<div class="flex-1 overflow-y-auto" style="height: calc(100vh - 80px);">${content}</div></div>`;
+      app.innerHTML = `${header}<div style="display: flex;">${sidebar}<div style="flex: 1; background: #F8F9FA; min-height: calc(100vh - 65px);">${content}</div></div>`;
     }
 
     // Load data
@@ -932,7 +841,7 @@
     if (savedExams) DB.examinations = JSON.parse(savedExams);
 
     render();
-    console.log('✅ MediScript Pro - Enterprise Edition Loaded');
+    console.log('✅ MediScript - Practo-inspired design loaded');
   </script>
 </body>
 </html>
