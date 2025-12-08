@@ -7,7 +7,6 @@
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -231,13 +230,11 @@
     <div class="content-area" id="contentArea"></div>
   </div>
 
-  <!-- Toast Notification -->
   <div class="toast" id="toast">
     <span id="toastIcon"></span>
     <span id="toastMessage"></span>
   </div>
 
-  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -249,7 +246,7 @@
   </div>
 
   <script>
-    // Initialize Data from LocalStorage
+    // Initialize Data
     let DB = JSON.parse(localStorage.getItem('mediscript_db')) || {
       patients: [
         {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220', email: 'rajesh@example.com'},
@@ -264,23 +261,19 @@
         {id: 'inv1', patient_id: 'p1', date: '2025-12-08', services: 'Consultation', total: 590, paid: 590, pending: 0, payment: 'Cash', status: 'Paid'},
         {id: 'inv2', patient_id: 'p2', date: '2025-12-07', services: 'Consultation + ECG', total: 944, paid: 500, pending: 444, payment: 'UPI', status: 'Partial'}
       ],
-      examinations: [],
       inventory: [
         {id: 'i1', medicine: 'Paracetamol 650mg', quantity: 500, batch: 'B123', expiry: '2026-12-31', price: 2},
-        {id: 'i2', medicine: 'Amoxicillin 500mg', quantity: 50, batch: 'B124', expiry: '2025-12-31', price: 5},
-        {id: 'i3', medicine: 'Metformin 500mg', quantity: 200, batch: 'B125', expiry: '2026-06-30', price: 3}
+        {id: 'i2', medicine: 'Amoxicillin 500mg', quantity: 50, batch: 'B124', expiry: '2025-12-31', price: 5}
       ]
     };
 
     let currentScreen = 'dashboard';
 
-    // Save to LocalStorage
     function saveDB() {
       localStorage.setItem('mediscript_db', JSON.stringify(DB));
     }
 
-    // Toast Notification
-    function showToast(message, type = 'success') {
+    function showToast(message, type) {
       const toast = document.getElementById('toast');
       const icon = document.getElementById('toastIcon');
       const msg = document.getElementById('toastMessage');
@@ -292,7 +285,6 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Modal Functions
     function openModal(title, body) {
       document.getElementById('modalTitle').textContent = title;
       document.getElementById('modalBody').innerHTML = body;
@@ -303,10 +295,9 @@
       document.getElementById('modal').classList.remove('active');
     }
 
-    // Register Patient
     function registerPatient() {
       openModal('👤 Register New Patient', `
-        <form onsubmit="savePatient(event)">
+        <form onsubmit="event.preventDefault(); savePatient();">
           <div class="grid grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">First Name *</label>
@@ -355,8 +346,7 @@
       `);
     }
 
-    function savePatient(e) {
-      e.preventDefault();
+    function savePatient() {
       const patient = {
         id: 'p' + Date.now(),
         patient_id: 'P' + String(DB.patients.length + 1).padStart(3, '0'),
@@ -371,14 +361,13 @@
       DB.patients.push(patient);
       saveDB();
       closeModal();
-      showToast('Patient registered successfully!');
+      showToast('Patient registered successfully!', 'success');
       if (currentScreen === 'patients') renderContent();
     }
 
-    // Book Appointment
     function bookAppointment() {
       openModal('📅 Book Appointment', `
-        <form onsubmit="saveAppointment(event)">
+        <form onsubmit="event.preventDefault(); saveAppointment();">
           <div class="form-group">
             <label class="form-label">Patient *</label>
             <select id="apptPatient" class="form-input" required>
@@ -413,8 +402,7 @@
       `);
     }
 
-    function saveAppointment(e) {
-      e.preventDefault();
+    function saveAppointment() {
       const appt = {
         id: 'a' + Date.now(),
         patient_id: document.getElementById('apptPatient').value,
@@ -429,14 +417,13 @@
       DB.appointments.push(appt);
       saveDB();
       closeModal();
-      showToast(`Appointment booked! Token #${appt.token}`);
+      showToast('Appointment booked! Token #' + appt.token, 'success');
       if (currentScreen === 'appointments') renderContent();
     }
 
-    // Generate Invoice
     function generateInvoice() {
       openModal('💰 Generate Invoice', `
-        <form onsubmit="saveInvoice(event)">
+        <form onsubmit="event.preventDefault(); saveInvoice();">
           <div class="form-group">
             <label class="form-label">Patient *</label>
             <select id="billPatient" class="form-input" required>
@@ -453,11 +440,11 @@
           </div>
           <div class="form-group">
             <label class="form-label">GST (18%)</label>
-            <input type="number" id="billGST" class="form-input" readonly>
+            <input type="number" id="billGST" class="form-input" readonly value="90">
           </div>
           <div class="form-group">
             <label class="form-label">Total</label>
-            <input type="number" id="billTotal" class="form-input" readonly style="font-weight: 700;">
+            <input type="number" id="billTotal" class="form-input" readonly value="590" style="font-weight: 700;">
           </div>
           <div class="form-group">
             <label class="form-label">Payment Method</label>
@@ -472,21 +459,18 @@
             <button type="button" onclick="closeModal()" class="btn btn-danger">Cancel</button>
           </div>
         </form>
-        <script>
-          function calcTotal() {
-            const amt = parseFloat(document.getElementById('billAmount').value) || 0;
-            const gst = amt * 0.18;
-            const total = amt + gst;
-            document.getElementById('billGST').value = gst.toFixed(2);
-            document.getElementById('billTotal').value = total.toFixed(2);
-          }
-          calcTotal();
-        </script>
       `);
     }
 
-    function saveInvoice(e) {
-      e.preventDefault();
+    function calcTotal() {
+      const amt = parseFloat(document.getElementById('billAmount').value) || 0;
+      const gst = amt * 0.18;
+      const total = amt + gst;
+      document.getElementById('billGST').value = gst.toFixed(2);
+      document.getElementById('billTotal').value = total.toFixed(2);
+    }
+
+    function saveInvoice() {
       const total = parseFloat(document.getElementById('billTotal').value);
       const invoice = {
         id: 'inv' + Date.now(),
@@ -502,16 +486,15 @@
       DB.invoices.push(invoice);
       saveDB();
       closeModal();
-      showToast('Invoice generated successfully!');
+      showToast('Invoice generated successfully!', 'success');
       if (currentScreen === 'billing') renderContent();
     }
 
-    // Delete Functions
     function deletePatient(id) {
       if (confirm('Delete this patient?')) {
         DB.patients = DB.patients.filter(p => p.id !== id);
         saveDB();
-        showToast('Patient deleted');
+        showToast('Patient deleted', 'success');
         renderContent();
       }
     }
@@ -520,12 +503,11 @@
       if (confirm('Cancel this appointment?')) {
         DB.appointments = DB.appointments.filter(a => a.id !== id);
         saveDB();
-        showToast('Appointment cancelled');
+        showToast('Appointment cancelled', 'success');
         renderContent();
       }
     }
 
-    // Render Functions
     function renderSidebar() {
       document.getElementById('sidebar').innerHTML = `
         <div class="nav-section">CORE MODULES</div>
@@ -540,9 +522,6 @@
         </div>
         <div class="nav-item ${currentScreen === 'billing' ? 'active' : ''}" onclick="switchScreen('billing')">
           <span>💰</span><span>Billing</span>
-        </div>
-        <div class="nav-item ${currentScreen === 'examinations' ? 'active' : ''}" onclick="switchScreen('examinations')">
-          <span>🩺</span><span>Examinations</span>
         </div>
         <div class="nav-section">OPERATIONS</div>
         <div class="nav-item ${currentScreen === 'inventory' ? 'active' : ''}" onclick="switchScreen('inventory')">
@@ -570,7 +549,7 @@
               <button onclick="registerPatient()" class="btn btn-primary">👤 Register Patient</button>
               <button onclick="bookAppointment()" class="btn btn-success">📅 Book Appointment</button>
               <button onclick="generateInvoice()" class="btn btn-primary">💰 Generate Invoice</button>
-              <button onclick="switchScreen('examinations')" class="btn btn-success">🩺 New Examination</button>
+              <button onclick="switchScreen('inventory')" class="btn btn-success">📦 View Inventory</button>
             </div>
           </div>
         `;
@@ -646,18 +625,6 @@
             </table>
           </div>
         `;
-      } else if (currentScreen === 'examinations') {
-        content = `
-          <h1 class="page-title">Clinical Examinations</h1>
-          <p class="page-subtitle">Record patient examinations</p>
-          <div class="card mt-6">
-            <div style="text-align: center; padding: 40px;">
-              <div style="font-size: 64px; margin-bottom: 16px;">🩺</div>
-              <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Examination Module</h3>
-              <p style="color: var(--text-light); margin-bottom: 20px;">Voice-enabled examination with AI features coming soon</p>
-            </div>
-          </div>
-        `;
       } else if (currentScreen === 'inventory') {
         content = `
           <h1 class="page-title">Inventory</h1>
@@ -689,11 +656,14 @@
     }
 
     // Initial render
-    renderSidebar();
-    renderContent();
-
-    console.log('✅ MediScript Enterprise - FULLY FUNCTIONAL!');
-    console.log('✅ Working Modals, Data Persistence, CRUD Operations');
+    try {
+      renderSidebar();
+      renderContent();
+      console.log('✅ MediScript Enterprise - Loaded Successfully!');
+    } catch (error) {
+      console.error('Error loading app:', error);
+      document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>Error Loading Application</h1><p>' + error.message + '</p></div>';
+    }
   </script>
 </body>
 </html>
