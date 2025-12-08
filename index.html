@@ -163,7 +163,7 @@
       <form onsubmit="saveExamination(event)">
         <div class="mb-4">
           <label class="form-label">Patient *</label>
-          <select id="examPatient" class="form-input" required></select>
+          <select id="examPatient" class="form-input" required onchange="updatePatientInfo()"></select>
         </div>
 
         <!-- Quick Templates -->
@@ -565,6 +565,16 @@
       document.querySelectorAll('.mic-btn').forEach(btn => btn.classList.remove('listening'));
       currentInputField = null;
     }
+
+    // Update Patient Info
+    window.updatePatientInfo = function() {
+      const patientId = document.getElementById('examPatient').value;
+      const patient = DB.patients.find(p => p.id === patientId);
+      if (patient) {
+        // Store current patient for AI modals
+        window.currentPatient = patient;
+      }
+    };
 
     // Wizard Navigation
     window.nextStep = function(step) {
@@ -1064,8 +1074,10 @@ Advice:
       alert('✅ PDF generated!');
     };
 
+    // ENHANCED: Open Modal with Data Pre-population
     window.openModal = function(id) {
       document.getElementById(id).classList.add('active');
+      
       if (id === 'patientModal') {
         currentStep = 1;
         document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
@@ -1073,10 +1085,56 @@ Advice:
         document.getElementById('step1').classList.add('active');
         document.getElementById('step1-indicator').classList.add('active');
       }
+      
       if (id === 'examinationModal') {
         const select = document.getElementById('examPatient');
         select.innerHTML = DB.patients.map(p => `<option value="${p.id}">${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('');
+        updatePatientInfo();
       }
+      
+      // PRE-POPULATE AI MODALS WITH DATA FROM EXAMINATION FORM
+      if (id === 'aiDiagnosisModal') {
+        const complaint = document.getElementById('examComplaint')?.value || '';
+        const patient = window.currentPatient;
+        document.getElementById('aiComplaint').value = complaint;
+        if (patient) {
+          document.getElementById('aiAge').value = patient.age;
+          document.getElementById('aiGender').value = patient.gender;
+        }
+      }
+      
+      if (id === 'aiDifferentialModal') {
+        const complaint = document.getElementById('examComplaint')?.value || '';
+        const patient = window.currentPatient;
+        document.getElementById('diffSymptoms').value = complaint;
+        if (patient) {
+          document.getElementById('diffAge').value = patient.age;
+          document.getElementById('diffGender').value = patient.gender;
+        }
+      }
+      
+      if (id === 'aiTreatmentModal') {
+        const diagnosis = document.getElementById('examDiagnosis')?.value || '';
+        document.getElementById('treatDiagnosis').value = diagnosis;
+      }
+      
+      if (id === 'aiFollowupModal') {
+        const diagnosis = document.getElementById('examDiagnosis')?.value || '';
+        document.getElementById('followDiagnosis').value = diagnosis;
+      }
+      
+      if (id === 'aiPrescriptionModal') {
+        const diagnosis = document.getElementById('examDiagnosis')?.value || '';
+        const patient = window.currentPatient;
+        const weight = document.getElementById('vitalWeight')?.value || '70';
+        document.getElementById('rxDiagnosis').value = diagnosis;
+        if (patient) {
+          document.getElementById('rxAge').value = patient.age;
+          document.getElementById('rxGender').value = patient.gender;
+        }
+        document.getElementById('rxWeight').value = weight;
+      }
+      
       if (id === 'aiSymptomModal') {
         document.getElementById('chatHistory').innerHTML = '<div style="background:#f3f4f6;padding:10px;border-radius:10px;margin:5px 0;">Hello! Describe your symptoms.</div>';
       }
@@ -1136,7 +1194,7 @@ Advice:
               <ul class="text-sm space-y-1">
                 <li>✅ Enhanced Patient Registration</li>
                 <li>✅ Complete Vital Signs + BMI</li>
-                <li>✅ 7 AI Features (Diagnosis, Differential, Treatment, Follow-up, Prescription, Report, Symptom)</li>
+                <li>✅ 7 AI Features (Auto Pre-populate)</li>
                 <li>✅ Voice Input on All Fields</li>
                 <li>✅ 6 Quick Templates</li>
                 <li>✅ Smart Suggestions</li>
@@ -1171,35 +1229,35 @@ Advice:
             <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiDiagnosisModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">🔬</div>
-                <div><h3 class="font-bold">AI Diagnosis</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">AI Diagnosis</h3><span class="ai-badge">Auto-Fill</span></div>
               </div>
               <p class="text-sm text-gray-600">Analyze symptoms with confidence scores</p>
             </div>
             <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiDifferentialModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">🔬</div>
-                <div><h3 class="font-bold">Differential Diagnosis</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">Differential Diagnosis</h3><span class="ai-badge">Auto-Fill</span></div>
               </div>
               <p class="text-sm text-gray-600">Rule out dangerous conditions</p>
             </div>
             <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiTreatmentModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">📋</div>
-                <div><h3 class="font-bold">Treatment Planner</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">Treatment Planner</h3><span class="ai-badge">Auto-Fill</span></div>
               </div>
               <p class="text-sm text-gray-600">Step-by-step treatment protocols</p>
             </div>
             <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiFollowupModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">📅</div>
-                <div><h3 class="font-bold">Follow-up Predictor</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">Follow-up Predictor</h3><span class="ai-badge">Auto-Fill</span></div>
               </div>
               <p class="text-sm text-gray-600">Predict optimal follow-up dates</p>
             </div>
             <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiPrescriptionModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">💊</div>
-                <div><h3 class="font-bold">AI Prescription</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">AI Prescription</h3><span class="ai-badge">Auto-Fill</span></div>
               </div>
               <p class="text-sm text-gray-600">Generate medicine lists with dosages</p>
             </div>
@@ -1227,6 +1285,7 @@ Advice:
     console.log('✅ Phase 1: Enhanced Registration, Vitals, BMI');
     console.log('✅ Phase 2: 7 AI Features');
     console.log('✅ Phase 3: Voice + Templates');
+    console.log('✅ FIX: AI modals now auto-populate with examination data!');
     render();
   </script>
 </body>
