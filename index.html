@@ -3,14 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EdgesOf MediScript v3.0 - Complete Doctor System</title>
+  <title>EdgesOf MediScript v3.1 - Enterprise Features</title>
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #f9fafb; }
+    body { background: #f9fafb; transition: background 0.3s, color 0.3s; }
+    body.dark { background: #1a1a1a; color: #e5e7eb; }
+    .dark .card { background: #2d2d2d; color: #e5e7eb; }
+    .dark .stat-card { background: #2d2d2d; color: #e5e7eb; }
+    .dark .form-input { background: #3d3d3d; color: #e5e7eb; border-color: #4d4d4d; }
+    .dark .modal-content { background: #2d2d2d; color: #e5e7eb; }
+    .dark table th { background: #3d3d3d; color: #e5e7eb; }
+    .dark table td { border-color: #4d4d4d; color: #e5e7eb; }
+    .dark .nav-link { color: rgba(255,255,255,0.8); }
+    .dark .template-card { background: #3d3d3d; border-color: #4d4d4d; color: #e5e7eb; }
     .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; transition: all 0.3s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; font-size: 14px; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
     .btn-xs { padding: 4px 8px; font-size: 11px; }
@@ -19,6 +28,7 @@
     .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
     .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
     .btn-secondary { background: white; color: #1f2937; border: 2px solid #e5e7eb; }
+    .dark .btn-secondary { background: #3d3d3d; color: #e5e7eb; border-color: #4d4d4d; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -27,9 +37,12 @@
     .form-input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; }
     .form-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
     .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .dark .form-label { color: #d1d5db; }
     .badge { display: inline-flex; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; }
     .badge-success { background: #d1fae5; color: #065f46; }
     .badge-purple { background: #ede9fe; color: #6b21a8; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; overflow-y: auto; }
     .modal.active { display: flex; }
     .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 1200px; max-height: 90vh; overflow-y: auto; width: 90%; margin: 20px; }
@@ -39,7 +52,6 @@
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
     th { background: #f9fafb; font-weight: 600; }
-    .ai-badge { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .voice-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .mic-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #ef4444; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 16px; }
     .mic-btn:hover { background: #dc2626; transform: translateY(-50%) scale(1.1); }
@@ -49,38 +61,209 @@
     .template-card:hover { border-color: #8b5cf6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2); }
     .wizard-step { display: none; }
     .wizard-step.active { display: block; }
-    .step-indicator { display: flex; justify-between; margin-bottom: 30px; }
+    .step-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; }
     .step-item { flex: 1; text-align: center; position: relative; }
     .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; color: #9ca3af; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: 14px; }
     .step-item.active .step-circle { background: #2563eb; color: white; }
     .step-item.completed .step-circle { background: #10b981; color: white; }
+    .recent-patient { padding: 12px; border-radius: 8px; background: #f9fafb; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+    .recent-patient:hover { background: #e5e7eb; transform: translateX(4px); }
+    .dark .recent-patient { background: #3d3d3d; }
+    .dark .recent-patient:hover { background: #4d4d4d; }
+    .interaction-warning { background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 12px; margin: 12px 0; }
+    .dark .interaction-warning { background: #4d2020; border-color: #dc2626; }
+    .keyboard-hint { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 16px; border-radius: 8px; font-size: 12px; z-index: 1000; display: none; }
+    .keyboard-hint.show { display: block; animation: fadeIn 0.3s; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
   <div id="app"></div>
+  <div id="keyboardHint" class="keyboard-hint"></div>
 
   <!-- Patient Modal -->
-  <div id="patientModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">👤 Complete Patient Registration</h2><button onclick="closeModal('patientModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><div class="step-indicator"><div class="step-item active" id="step1-indicator"><div class="step-circle">1</div><p class="text-xs">Basic Info</p></div><div class="step-item" id="step2-indicator"><div class="step-circle">2</div><p class="text-xs">Medical History</p></div><div class="step-item" id="step3-indicator"><div class="step-circle">3</div><p class="text-xs">Insurance</p></div></div><form onsubmit="savePatient(event)"><div id="step1" class="wizard-step active"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">First Name *</label><input type="text" id="patFirstName" class="form-input" required></div><div><label class="form-label">Last Name *</label><input type="text" id="patLastName" class="form-input" required></div></div><div class="grid grid-cols-3 gap-4 mb-4"><div><label class="form-label">Age *</label><input type="number" id="patAge" class="form-input" required></div><div><label class="form-label">Gender *</label><select id="patGender" class="form-input"><option>Male</option><option>Female</option><option>Other</option></select></div><div><label class="form-label">Blood Group</label><select id="patBlood" class="form-input"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Phone *</label><input type="tel" id="patPhone" class="form-input" required></div><div><label class="form-label">Email</label><input type="email" id="patEmail" class="form-input"></div></div><div class="mb-4"><label class="form-label">Address</label><textarea id="patAddress" class="form-input" rows="2"></textarea></div><button type="button" onclick="nextStep(2)" class="btn btn-primary">Next →</button></div><div id="step2" class="wizard-step"><div class="mb-4"><label class="form-label">Known Allergies</label><textarea id="patAllergies" class="form-input" rows="2" placeholder="e.g., Penicillin, Peanuts"></textarea></div><div class="mb-4"><label class="form-label">Current Medications</label><textarea id="patCurrentMeds" class="form-input" rows="2" placeholder="e.g., Aspirin 75mg daily"></textarea></div><div class="mb-4"><label class="form-label">Past Medical History</label><textarea id="patPastHistory" class="form-input" rows="3" placeholder="e.g., Diabetes, Hypertension"></textarea></div><div class="flex gap-3"><button type="button" onclick="prevStep(1)" class="btn btn-secondary">← Back</button><button type="button" onclick="nextStep(3)" class="btn btn-primary">Next →</button></div></div><div id="step3" class="wizard-step"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Insurance Provider</label><input type="text" id="patInsuranceProvider" class="form-input" placeholder="e.g., Star Health"></div><div><label class="form-label">Policy Number</label><input type="text" id="patPolicyNumber" class="form-input"></div></div><div class="flex gap-3"><button type="button" onclick="prevStep(2)" class="btn btn-secondary">← Back</button><button type="submit" class="btn btn-success">✅ Save Patient</button></div></div></form></div></div>
+  <div id="patientModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">👤 Patient Registration <span class="text-sm text-gray-500">(Ctrl+N)</span></h2><button onclick="closeModal('patientModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><div class="step-indicator"><div class="step-item active" id="step1-indicator"><div class="step-circle">1</div><p class="text-xs">Basic</p></div><div class="step-item" id="step2-indicator"><div class="step-circle">2</div><p class="text-xs">Medical</p></div><div class="step-item" id="step3-indicator"><div class="step-circle">3</div><p class="text-xs">Insurance</p></div></div><form onsubmit="savePatient(event)"><div id="step1" class="wizard-step active"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">First Name *</label><input type="text" id="patFirstName" class="form-input" required></div><div><label class="form-label">Last Name *</label><input type="text" id="patLastName" class="form-input" required></div></div><div class="grid grid-cols-3 gap-4 mb-4"><div><label class="form-label">Age *</label><input type="number" id="patAge" class="form-input" required></div><div><label class="form-label">Gender *</label><select id="patGender" class="form-input"><option>Male</option><option>Female</option><option>Other</option></select></div><div><label class="form-label">Blood Group</label><select id="patBlood" class="form-input"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Phone *</label><input type="tel" id="patPhone" class="form-input" required></div><div><label class="form-label">Email</label><input type="email" id="patEmail" class="form-input"></div></div><div class="mb-4"><label class="form-label">Address</label><textarea id="patAddress" class="form-input" rows="2"></textarea></div><button type="button" onclick="nextStep(2)" class="btn btn-primary">Next →</button></div><div id="step2" class="wizard-step"><div class="mb-4"><label class="form-label">Known Allergies</label><textarea id="patAllergies" class="form-input" rows="2" placeholder="e.g., Penicillin, Peanuts"></textarea></div><div class="mb-4"><label class="form-label">Current Medications</label><textarea id="patCurrentMeds" class="form-input" rows="2" placeholder="e.g., Aspirin 75mg daily"></textarea></div><div class="mb-4"><label class="form-label">Past Medical History</label><textarea id="patPastHistory" class="form-input" rows="3" placeholder="e.g., Diabetes, Hypertension"></textarea></div><div class="flex gap-3"><button type="button" onclick="prevStep(1)" class="btn btn-secondary">← Back</button><button type="button" onclick="nextStep(3)" class="btn btn-primary">Next →</button></div></div><div id="step3" class="wizard-step"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Insurance Provider</label><input type="text" id="patInsuranceProvider" class="form-input"></div><div><label class="form-label">Policy Number</label><input type="text" id="patPolicyNumber" class="form-input"></div></div><div class="flex gap-3"><button type="button" onclick="prevStep(2)" class="btn btn-secondary">← Back</button><button type="submit" class="btn btn-success">✅ Save</button></div></div></form></div></div>
 
   <!-- Examination Modal -->
-  <div id="examinationModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><div><h2 class="text-2xl font-bold">🩺 Clinical Examination</h2><span class="voice-badge">🎤 Voice Enabled</span></div><button onclick="closeModal('examinationModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><form onsubmit="saveExamination(event)"><div class="mb-4"><label class="form-label">Patient *</label><select id="examPatient" class="form-input" required onchange="updatePatientInfo()"></select></div><div class="card"><h3 class="font-bold mb-3">⚡ Quick Templates</h3><div class="grid grid-cols-3 gap-3"><div class="template-card" onclick="applyTemplate('fever')"><div class="text-2xl mb-1">🤒</div><div class="font-bold text-sm">Fever</div></div><div class="template-card" onclick="applyTemplate('cold')"><div class="text-2xl mb-1">🤧</div><div class="font-bold text-sm">Cold/Cough</div></div><div class="template-card" onclick="applyTemplate('gastritis')"><div class="text-2xl mb-1">🤢</div><div class="font-bold text-sm">Gastritis</div></div><div class="template-card" onclick="applyTemplate('uti')"><div class="text-2xl mb-1">💧</div><div class="font-bold text-sm">UTI</div></div><div class="template-card" onclick="applyTemplate('hypertension')"><div class="text-2xl mb-1">❤️</div><div class="font-bold text-sm">Hypertension</div></div><div class="template-card" onclick="applyTemplate('diabetes')"><div class="text-2xl mb-1">🩸</div><div class="font-bold text-sm">Diabetes</div></div></div></div><div class="card"><h3 class="font-bold mb-4">📊 Vital Signs</h3><div class="grid grid-cols-3 gap-4 mb-4"><div class="input-with-mic"><label class="form-label">BP</label><input type="text" id="vitalBP" class="form-input" placeholder="120/80"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalBP')">🎤</button></div><div class="input-with-mic"><label class="form-label">Temp</label><input type="text" id="vitalTemp" class="form-input" placeholder="98.6°F"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalTemp')">🎤</button></div><div class="input-with-mic"><label class="form-label">Pulse</label><input type="text" id="vitalPulse" class="form-input" placeholder="72"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalPulse')">🎤</button></div><div class="input-with-mic"><label class="form-label">SpO2</label><input type="text" id="vitalSpO2" class="form-input" placeholder="98%"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalSpO2')">🎤</button></div><div class="input-with-mic"><label class="form-label">Weight (kg)</label><input type="number" id="vitalWeight" class="form-input" placeholder="70" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalWeight')">🎤</button></div><div class="input-with-mic"><label class="form-label">Height (cm)</label><input type="number" id="vitalHeight" class="form-input" placeholder="170" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalHeight')">🎤</button></div></div><div class="p-4 bg-blue-50 rounded-lg" id="bmiDisplay" style="display: none;"><div class="text-sm font-semibold text-blue-700">BMI: <span id="bmiValue"></span></div><div class="text-xs text-blue-600" id="bmiCategory"></div></div></div><div class="mb-4 input-with-mic"><label class="form-label">Chief Complaint * 🎤</label><textarea id="examComplaint" class="form-input" rows="2" required></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examComplaint')" style="top: 40px;">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">History of Present Illness 🎤</label><textarea id="examHPI" class="form-input" rows="3"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examHPI')" style="top: 40px;">🎤</button></div><div class="card"><h3 class="font-bold mb-4">🔍 Physical Examination</h3><div class="grid grid-cols-2 gap-4"><div class="input-with-mic"><label class="form-label">General</label><textarea id="examGeneral" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examGeneral')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Cardiovascular</label><textarea id="examCardio" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examCardio')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Respiratory</label><textarea id="examResp" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examResp')" style="top: 30px;">🎤</button></div><div class="input-with-mic"><label class="form-label">Abdomen</label><textarea id="examAbdomen" class="form-input" rows="2"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examAbdomen')" style="top: 30px;">🎤</button></div></div></div><div class="mb-4 input-with-mic"><label class="form-label">Provisional Diagnosis *</label><input type="text" id="examDiagnosis" class="form-input" required><button type="button" class="mic-btn" onclick="startVoiceInput('examDiagnosis')">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">Treatment Plan 🎤</label><textarea id="examTreatment" class="form-input" rows="4"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examTreatment')" style="top: 40px;">🎤</button><div class="mt-2"><button type="button" onclick="showSuggestions()" class="btn btn-secondary btn-xs">💡 Smart Suggestions</button></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Follow-up Date</label><input type="date" id="examFollowup" class="form-input"></div><div class="input-with-mic"><label class="form-label">Follow-up Notes</label><input type="text" id="examFollowupNotes" class="form-input"><button type="button" class="mic-btn" onclick="startVoiceInput('examFollowupNotes')">🎤</button></div></div><div class="flex gap-3"><button type="submit" class="btn btn-success">✅ Save</button><button type="button" onclick="generatePrescriptionPDF()" class="btn btn-primary">📄 PDF</button><button type="button" onclick="closeModal('examinationModal')" class="btn btn-secondary">Cancel</button></div></form></div></div>
+  <div id="examinationModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><div><h2 class="text-2xl font-bold">🩺 Examination <span class="text-sm text-gray-500">(Ctrl+E)</span></h2><span class="voice-badge">🎤 Voice</span></div><button onclick="closeModal('examinationModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><form onsubmit="saveExamination(event)"><div class="mb-4"><label class="form-label">Patient *</label><select id="examPatient" class="form-input" required onchange="updatePatientInfo()"></select></div><div id="drugInteractionWarning"></div><div class="card"><h3 class="font-bold mb-3">⚡ Quick Templates</h3><div class="grid grid-cols-3 gap-3"><div class="template-card" onclick="applyTemplate('fever')"><div class="text-2xl mb-1">🤒</div><div class="font-bold text-sm">Fever</div></div><div class="template-card" onclick="applyTemplate('cold')"><div class="text-2xl mb-1">🤧</div><div class="font-bold text-sm">Cold</div></div><div class="template-card" onclick="applyTemplate('gastritis')"><div class="text-2xl mb-1">🤢</div><div class="font-bold text-sm">Gastritis</div></div><div class="template-card" onclick="applyTemplate('uti')"><div class="text-2xl mb-1">💧</div><div class="font-bold text-sm">UTI</div></div><div class="template-card" onclick="applyTemplate('hypertension')"><div class="text-2xl mb-1">❤️</div><div class="font-bold text-sm">HTN</div></div><div class="template-card" onclick="applyTemplate('diabetes')"><div class="text-2xl mb-1">🩸</div><div class="font-bold text-sm">Diabetes</div></div></div></div><div class="card"><h3 class="font-bold mb-4">📊 Vitals</h3><div class="grid grid-cols-3 gap-4 mb-4"><div class="input-with-mic"><label class="form-label">BP</label><input type="text" id="vitalBP" class="form-input" placeholder="120/80"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalBP')">🎤</button></div><div class="input-with-mic"><label class="form-label">Temp</label><input type="text" id="vitalTemp" class="form-input" placeholder="98.6°F"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalTemp')">🎤</button></div><div class="input-with-mic"><label class="form-label">Pulse</label><input type="text" id="vitalPulse" class="form-input" placeholder="72"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalPulse')">🎤</button></div><div class="input-with-mic"><label class="form-label">SpO2</label><input type="text" id="vitalSpO2" class="form-input" placeholder="98%"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalSpO2')">🎤</button></div><div class="input-with-mic"><label class="form-label">Weight (kg)</label><input type="number" id="vitalWeight" class="form-input" placeholder="70" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalWeight')">🎤</button></div><div class="input-with-mic"><label class="form-label">Height (cm)</label><input type="number" id="vitalHeight" class="form-input" placeholder="170" onchange="calculateBMI()"><button type="button" class="mic-btn" onclick="startVoiceInput('vitalHeight')">🎤</button></div></div><div class="p-4 bg-blue-50 rounded-lg" id="bmiDisplay" style="display: none;"><div class="text-sm font-semibold text-blue-700">BMI: <span id="bmiValue"></span></div><div class="text-xs text-blue-600" id="bmiCategory"></div></div></div><div class="mb-4 input-with-mic"><label class="form-label">Chief Complaint * 🎤</label><textarea id="examComplaint" class="form-input" rows="2" required></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examComplaint')" style="top: 40px;">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">Diagnosis *</label><input type="text" id="examDiagnosis" class="form-input" required><button type="button" class="mic-btn" onclick="startVoiceInput('examDiagnosis')">🎤</button></div><div class="mb-4 input-with-mic"><label class="form-label">Treatment 🎤</label><textarea id="examTreatment" class="form-input" rows="4" onchange="checkDrugInteractions()"></textarea><button type="button" class="mic-btn" onclick="startVoiceInput('examTreatment')" style="top: 40px;">🎤</button><div class="mt-2"><button type="button" onclick="showSuggestions()" class="btn btn-secondary btn-xs">💡 Suggestions</button></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="form-label">Follow-up</label><input type="date" id="examFollowup" class="form-input"></div><div class="input-with-mic"><label class="form-label">Notes</label><input type="text" id="examFollowupNotes" class="form-input"><button type="button" class="mic-btn" onclick="startVoiceInput('examFollowupNotes')">🎤</button></div></div><div class="flex gap-3"><button type="submit" class="btn btn-success">✅ Save</button><button type="button" onclick="generatePrescriptionPDF()" class="btn btn-primary">📄 PDF</button><button type="button" onclick="closeModal('examinationModal')" class="btn btn-secondary">Cancel</button></div></form></div></div>
+
+  <!-- Prescription History Modal -->
+  <div id="historyModal" class="modal"><div class="modal-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">📋 Prescription History</h2><button onclick="closeModal('historyModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div><div id="historyContent"></div><button onclick="closeModal('historyModal')" class="btn btn-primary mt-4">Close</button></div></div>
 
   <script type="module">
+    // Drug Interaction Database (Basic)
+    const DRUG_INTERACTIONS = {
+      'warfarin': ['aspirin', 'ibuprofen', 'naproxen'],
+      'aspirin': ['warfarin', 'ibuprofen'],
+      'metformin': ['alcohol'],
+      'amlodipine': ['simvastatin'],
+      'lisinopril': ['potassium'],
+      'levothyroxine': ['calcium', 'iron']
+    };
+
     let DB = {
       patients: [
-        {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220'},
+        {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220', allergies: 'Penicillin', current_medications: 'Aspirin 75mg'},
         {id: 'p2', patient_id: 'P002', first_name: 'Priya', last_name: 'Sharma', age: 32, gender: 'Female', blood_group: 'A+', phone: '+919876543221'},
         {id: 'p3', patient_id: 'P003', first_name: 'Kumar', last_name: 'Vaibhav', age: 28, gender: 'Male', blood_group: 'A-', phone: '09999456126'}
       ],
-      examinations: []
+      examinations: [],
+      recentPatients: []
     };
 
     let currentScreen = 'dashboard';
     let currentStep = 1;
     let recognition = null;
     let currentInputField = null;
+    let darkMode = localStorage.getItem('darkMode') === 'true';
 
+    // Apply dark mode on load
+    if (darkMode) document.body.classList.add('dark');
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 'n':
+            e.preventDefault();
+            showKeyboardHint('New Patient (Ctrl+N)');
+            openModal('patientModal');
+            break;
+          case 'e':
+            e.preventDefault();
+            showKeyboardHint('New Examination (Ctrl+E)');
+            openModal('examinationModal');
+            break;
+          case 'd':
+            e.preventDefault();
+            showKeyboardHint('Toggle Dark Mode (Ctrl+D)');
+            toggleDarkMode();
+            break;
+          case 's':
+            e.preventDefault();
+            showKeyboardHint('Search Patients (Ctrl+S)');
+            document.getElementById('patientSearch')?.focus();
+            break;
+        }
+      }
+    });
+
+    function showKeyboardHint(text) {
+      const hint = document.getElementById('keyboardHint');
+      hint.textContent = text;
+      hint.classList.add('show');
+      setTimeout(() => hint.classList.remove('show'), 2000);
+    }
+
+    window.toggleDarkMode = function() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', darkMode);
+    };
+
+    window.exportPatientsCSV = function() {
+      const csv = ['ID,Name,Age,Gender,Blood,Phone,Email'].concat(
+        DB.patients.map(p => `${p.patient_id},"${p.first_name} ${p.last_name}",${p.age},${p.gender},${p.blood_group},${p.phone},${p.email || ''}`)
+      ).join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `patients_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      alert('✅ Patient list exported!');
+    };
+
+    window.checkDrugInteractions = function() {
+      const treatment = document.getElementById('examTreatment').value.toLowerCase();
+      const patient = window.currentPatient;
+      const warningDiv = document.getElementById('drugInteractionWarning');
+      
+      if (!patient || !treatment) {
+        warningDiv.innerHTML = '';
+        return;
+      }
+
+      const warnings = [];
+      
+      // Check allergies
+      if (patient.allergies) {
+        const allergies = patient.allergies.toLowerCase().split(',').map(a => a.trim());
+        allergies.forEach(allergy => {
+          if (treatment.includes(allergy)) {
+            warnings.push(`⚠️ ALLERGY ALERT: Patient allergic to ${allergy}`);
+          }
+        });
+      }
+
+      // Check drug interactions
+      const currentMeds = patient.current_medications ? patient.current_medications.toLowerCase().split(',').map(m => m.trim()) : [];
+      Object.keys(DRUG_INTERACTIONS).forEach(drug => {
+        if (treatment.includes(drug)) {
+          DRUG_INTERACTIONS[drug].forEach(interactingDrug => {
+            if (currentMeds.some(med => med.includes(interactingDrug)) || treatment.includes(interactingDrug)) {
+              warnings.push(`⚠️ INTERACTION: ${drug} interacts with ${interactingDrug}`);
+            }
+          });
+        }
+      });
+
+      if (warnings.length > 0) {
+        warningDiv.innerHTML = `<div class="interaction-warning"><strong>⚠️ Drug Safety Alerts:</strong><ul class="mt-2 ml-4">${warnings.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
+      } else {
+        warningDiv.innerHTML = '';
+      }
+    };
+
+    window.viewPrescriptionHistory = function(patientId) {
+      const patient = DB.patients.find(p => p.id === patientId);
+      const exams = DB.examinations.filter(e => e.patient_id === patientId);
+      
+      let html = `<h3 class="font-bold mb-4">${patient.first_name} ${patient.last_name} - ${patient.patient_id}</h3>`;
+      
+      if (exams.length === 0) {
+        html += '<p class="text-gray-500">No prescription history</p>';
+      } else {
+        html += '<div class="space-y-4">';
+        exams.forEach(e => {
+          html += `<div class="card">
+            <div class="flex justify-between items-start mb-2">
+              <div><strong>${e.date}</strong> - ${e.diagnosis}</div>
+              <button onclick="copyPrescription('${e.id}')" class="btn btn-xs btn-secondary">📋 Copy</button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2"><strong>Complaint:</strong> ${e.chief_complaint}</p>
+            <p class="text-sm"><strong>Treatment:</strong></p>
+            <pre class="text-xs bg-gray-50 p-2 rounded mt-1">${e.treatment_plan}</pre>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      
+      document.getElementById('historyContent').innerHTML = html;
+      openModal('historyModal');
+    };
+
+    window.copyPrescription = function(examId) {
+      const exam = DB.examinations.find(e => e.id === examId);
+      if (exam) {
+        document.getElementById('examComplaint').value = exam.chief_complaint;
+        document.getElementById('examDiagnosis').value = exam.diagnosis;
+        document.getElementById('examTreatment').value = exam.treatment_plan;
+        closeModal('historyModal');
+        alert('✅ Prescription copied! You can modify and save.');
+      }
+    };
+
+    function addToRecentPatients(patientId) {
+      DB.recentPatients = DB.recentPatients.filter(id => id !== patientId);
+      DB.recentPatients.unshift(patientId);
+      DB.recentPatients = DB.recentPatients.slice(0, 5);
+      localStorage.setItem('recentPatients', JSON.stringify(DB.recentPatients));
+    }
+
+    // Voice Recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
@@ -104,7 +287,7 @@
       recognition.onerror = function(event) {
         stopVoiceInput();
         if (event.error !== 'no-speech') {
-          alert('Voice input error. Please try again.');
+          alert('Voice error. Try again.');
         }
       };
 
@@ -115,7 +298,7 @@
 
     window.startVoiceInput = function(fieldId) {
       if (!recognition) {
-        alert('Voice input not supported. Use Chrome or Edge.');
+        alert('Voice not supported. Use Chrome/Edge.');
         return;
       }
       currentInputField = fieldId;
@@ -134,6 +317,7 @@
       const patient = DB.patients.find(p => p.id === patientId);
       if (patient) {
         window.currentPatient = patient;
+        checkDrugInteractions();
       }
     };
 
@@ -168,7 +352,7 @@
         
         let category = '';
         if (bmi < 18.5) category = 'Underweight';
-        else if (bmi < 25) category = 'Normal weight';
+        else if (bmi < 25) category = 'Normal';
         else if (bmi < 30) category = 'Overweight';
         else category = 'Obese';
         
@@ -177,22 +361,23 @@
     };
 
     const TEMPLATES = {
-      fever: {complaint: 'Fever for 3 days', diagnosis: 'Viral Fever', treatment: `Tab Paracetamol 650mg - TDS - 5 days (after meals)\nTab Cetirizine 10mg - OD - 5 days (at bedtime)\n\nAdvice:\n- Rest and adequate sleep\n- Drink plenty of fluids\n- Avoid cold foods`, followupNotes: 'Review if fever persists > 3 days'},
-      cold: {complaint: 'Cold and cough for 2 days', diagnosis: 'Upper Respiratory Tract Infection', treatment: `Tab Cetirizine 10mg - OD - 5 days\nSyrup Salbutamol 5ml - TDS - 5 days\nTab Paracetamol 650mg - SOS for fever\n\nAdvice:\n- Steam inhalation twice daily\n- Warm water gargles`, followupNotes: 'Review if symptoms worsen'},
-      gastritis: {complaint: 'Acidity and stomach pain', diagnosis: 'Acute Gastritis', treatment: `Tab Pantoprazole 40mg - OD - 14 days (before breakfast)\nTab Domperidone 10mg - TDS - 5 days (before meals)\n\nAdvice:\n- Avoid spicy and oily foods\n- Small frequent meals`, followupNotes: 'Review after 2 weeks'},
-      uti: {complaint: 'Burning urination', diagnosis: 'Urinary Tract Infection', treatment: `Tab Norfloxacin 400mg - BD - 5 days\nTab Citralka 2 tsp - TDS - 5 days\n\nAdvice:\n- Drink 3-4 liters water daily`, followupNotes: 'Urine culture if not improved'},
-      hypertension: {complaint: 'High blood pressure', diagnosis: 'Essential Hypertension', treatment: `Tab Amlodipine 5mg - OD - 30 days (morning)\nTab Aspirin 75mg - OD - 30 days (after dinner)\n\nAdvice:\n- Low salt diet\n- Regular exercise\n- Monitor BP daily`, followupNotes: 'Review after 1 month with BP chart'},
-      diabetes: {complaint: 'High blood sugar', diagnosis: 'Type 2 Diabetes Mellitus', treatment: `Tab Metformin 500mg - BD - 30 days (after meals)\nTab Glimepiride 1mg - OD - 30 days (before breakfast)\n\nAdvice:\n- Diabetic diet\n- Regular exercise\n- Monitor blood sugar`, followupNotes: 'Review after 1 month with sugar reports'}
+      fever: {complaint: 'Fever for 3 days', diagnosis: 'Viral Fever', treatment: `Tab Paracetamol 650mg - TDS - 5 days\nTab Cetirizine 10mg - OD - 5 days\n\nAdvice:\n- Rest\n- Fluids\n- Avoid cold foods`, followupNotes: 'Review if fever > 3 days'},
+      cold: {complaint: 'Cold and cough', diagnosis: 'URTI', treatment: `Tab Cetirizine 10mg - OD - 5 days\nSyrup Salbutamol 5ml - TDS - 5 days\n\nAdvice:\n- Steam inhalation\n- Warm water gargles`, followupNotes: 'Review if worse'},
+      gastritis: {complaint: 'Acidity', diagnosis: 'Gastritis', treatment: `Tab Pantoprazole 40mg - OD - 14 days\nTab Domperidone 10mg - TDS - 5 days\n\nAdvice:\n- Avoid spicy foods\n- Small meals`, followupNotes: 'Review 2 weeks'},
+      uti: {complaint: 'Burning urination', diagnosis: 'UTI', treatment: `Tab Norfloxacin 400mg - BD - 5 days\nTab Citralka 2 tsp - TDS - 5 days\n\nAdvice:\n- Drink 3-4L water`, followupNotes: 'Culture if not improved'},
+      hypertension: {complaint: 'High BP', diagnosis: 'Hypertension', treatment: `Tab Amlodipine 5mg - OD - 30 days\nTab Aspirin 75mg - OD - 30 days\n\nAdvice:\n- Low salt\n- Exercise\n- Monitor BP`, followupNotes: 'Review 1 month'},
+      diabetes: {complaint: 'High sugar', diagnosis: 'Diabetes', treatment: `Tab Metformin 500mg - BD - 30 days\nTab Glimepiride 1mg - OD - 30 days\n\nAdvice:\n- Diabetic diet\n- Exercise\n- Monitor sugar`, followupNotes: 'Review 1 month'}
     };
 
     window.applyTemplate = function(type) {
-      const template = TEMPLATES[type];
-      if (template) {
-        document.getElementById('examComplaint').value = template.complaint;
-        document.getElementById('examDiagnosis').value = template.diagnosis;
-        document.getElementById('examTreatment').value = template.treatment;
-        document.getElementById('examFollowupNotes').value = template.followupNotes;
-        alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} template applied!`);
+      const t = TEMPLATES[type];
+      if (t) {
+        document.getElementById('examComplaint').value = t.complaint;
+        document.getElementById('examDiagnosis').value = t.diagnosis;
+        document.getElementById('examTreatment').value = t.treatment;
+        document.getElementById('examFollowupNotes').value = t.followupNotes;
+        checkDrugInteractions();
+        alert(`✅ ${type} template applied!`);
       }
     };
 
@@ -207,11 +392,12 @@
       } else if (diagnosis.includes('gastritis') || diagnosis.includes('acidity')) {
         suggestions = 'Tab Pantoprazole 40mg OD\nTab Domperidone 10mg TDS';
       } else {
-        suggestions = 'Enter diagnosis first for smart suggestions';
+        suggestions = 'Enter diagnosis first';
       }
 
-      if (confirm('Apply these suggestions?\n\n' + suggestions)) {
+      if (confirm('Apply?\n\n' + suggestions)) {
         document.getElementById('examTreatment').value = suggestions;
+        checkDrugInteractions();
       }
     };
 
@@ -235,6 +421,7 @@
         policy_number: document.getElementById('patPolicyNumber').value
       };
       DB.patients.push(p);
+      localStorage.setItem('patients', JSON.stringify(DB.patients));
       closeModal('patientModal');
       currentStep = 1;
       alert('✅ Patient saved!');
@@ -257,13 +444,6 @@
           bmi: document.getElementById('bmiValue').textContent
         },
         chief_complaint: document.getElementById('examComplaint').value,
-        hpi: document.getElementById('examHPI').value,
-        physical_exam: {
-          general: document.getElementById('examGeneral').value,
-          cardio: document.getElementById('examCardio').value,
-          resp: document.getElementById('examResp').value,
-          abdomen: document.getElementById('examAbdomen').value
-        },
         diagnosis: document.getElementById('examDiagnosis').value,
         treatment_plan: document.getElementById('examTreatment').value,
         followup_date: document.getElementById('examFollowup').value,
@@ -271,8 +451,10 @@
       };
       
       DB.examinations.push(exam);
+      localStorage.setItem('examinations', JSON.stringify(DB.examinations));
+      addToRecentPatients(exam.patient_id);
       closeModal('examinationModal');
-      alert('✅ Examination saved!');
+      alert('✅ Saved!');
       render();
     };
 
@@ -283,41 +465,55 @@
       const patientId = document.getElementById('examPatient').value;
       const patient = DB.patients.find(p => p.id === patientId);
       
-      if (!patient) { alert('Select patient first'); return; }
+      if (!patient) { alert('Select patient'); return; }
 
+      // Header
       doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, 210, 40, 'F');
+      doc.rect(0, 0, 210, 45, 'F');
       
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
+      doc.setFontSize(26);
       doc.setFont(undefined, 'bold');
-      doc.text('City Health Clinic', 105, 15, { align: 'center' });
+      doc.text('City Health Clinic', 105, 18, { align: 'center' });
       
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont(undefined, 'normal');
       doc.text('Dr. Rajesh Sharma, MBBS, MD | Reg: MCI-12345', 105, 28, { align: 'center' });
+      doc.text('123 Medical Street, Mumbai | +91-9876543210', 105, 36, { align: 'center' });
 
+      // Title
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(12);
+      doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
-      doc.text('PRESCRIPTION', 105, 50, { align: 'center' });
+      doc.text('PRESCRIPTION', 105, 55, { align: 'center' });
       
+      // Patient Info
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60);
-      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 68);
-      doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 75);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 68);
+      doc.text(`Patient ID: ${patient.patient_id}`, 150, 68);
+      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 76);
+      doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 83);
+      doc.text(`Phone: ${patient.phone}`, 150, 76);
 
+      // Diagnosis
       doc.setFont(undefined, 'bold');
-      doc.text('Diagnosis:', 20, 90);
+      doc.text('Diagnosis:', 20, 98);
       doc.setFont(undefined, 'normal');
-      doc.text(document.getElementById('examDiagnosis').value, 20, 97);
+      doc.text(document.getElementById('examDiagnosis').value, 20, 105);
 
+      // Treatment
       doc.setFont(undefined, 'bold');
-      doc.text('Treatment:', 20, 110);
+      doc.text('Treatment Plan:', 20, 120);
       doc.setFont(undefined, 'normal');
       const treatment = doc.splitTextToSize(document.getElementById('examTreatment').value, 170);
-      doc.text(treatment, 20, 117);
+      doc.text(treatment, 20, 127);
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('This is a computer-generated prescription', 105, 280, { align: 'center' });
+      doc.text(`Generated on ${new Date().toLocaleString()}`, 105, 285, { align: 'center' });
 
       doc.save(`Rx_${patient.patient_id}_${new Date().toISOString().split('T')[0]}.pdf`);
       alert('✅ PDF generated!');
@@ -356,12 +552,13 @@
       const nav = `<nav class="bg-gray-900 text-white p-4 flex justify-between sticky top-0 z-50">
         <div class="flex gap-3 items-center">
           <img src="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg" class="h-10">
-          <h3 class="font-bold text-sm">City Health Clinic</h3>
+          <h3 class="font-bold text-sm">MediScript</h3>
           <span class="voice-badge">🎤 Voice</span>
-          <span class="badge badge-purple">v3.0</span>
+          <span class="badge badge-purple">v3.1</span>
         </div>
         <div class="flex items-center gap-3">
-          <p class="font-semibold text-sm">Dr. Rajesh Sharma</p>
+          <button onclick="toggleDarkMode()" class="btn btn-secondary btn-sm" title="Ctrl+D">${darkMode ? '☀️' : '🌙'}</button>
+          <p class="font-semibold text-sm">Dr. Sharma</p>
         </div>
       </nav>`;
 
@@ -371,12 +568,16 @@
           <a onclick="switchScreen('patients')" class="nav-link ${currentScreen === 'patients' ? 'active' : ''}">👥 Patients</a>
           <a onclick="switchScreen('examinations')" class="nav-link ${currentScreen === 'examinations' ? 'active' : ''}">🩺 Examinations</a>
         </nav>
+        ${DB.recentPatients.length > 0 ? `<div class="mt-6"><h4 class="text-xs font-bold text-gray-400 mb-2">RECENT PATIENTS</h4>${DB.recentPatients.map(id => {
+          const p = DB.patients.find(pt => pt.id === id);
+          return p ? `<div class="recent-patient" onclick="viewPrescriptionHistory('${p.id}')"><div class="font-semibold text-sm">${p.first_name} ${p.last_name}</div><div class="text-xs text-gray-400">${p.patient_id}</div></div>` : '';
+        }).join('')}</div>` : ''}
       </aside>`;
 
       let content = '';
 
       if (currentScreen === 'dashboard') {
-        content = `<h1 class="text-2xl font-bold mb-6">👨‍⚕️ Complete Doctor Dashboard</h1>
+        content = `<h1 class="text-2xl font-bold mb-6">👨‍⚕️ Dashboard</h1>
           <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="stat-card" onclick="switchScreen('patients')"><p class="text-gray-600 text-sm mb-1">Patients</p><p class="text-3xl font-bold text-green-600">${DB.patients.length}</p></div>
             <div class="stat-card" onclick="switchScreen('examinations')"><p class="text-gray-600 text-sm mb-1">Examinations</p><p class="text-3xl font-bold text-blue-600">${DB.examinations.length}</p></div>
@@ -385,36 +586,40 @@
           <div class="grid grid-cols-2 gap-6">
             <div class="card">
               <h3 class="font-bold mb-4">⚡ Quick Actions</h3>
-              <button onclick="openModal('patientModal')" class="btn btn-success w-full mb-2">+ New Patient (3-Step)</button>
-              <button onclick="openModal('examinationModal')" class="btn btn-primary w-full">🩺 New Exam (Voice)</button>
+              <button onclick="openModal('patientModal')" class="btn btn-success w-full mb-2">+ New Patient <span class="text-xs opacity-70">(Ctrl+N)</span></button>
+              <button onclick="openModal('examinationModal')" class="btn btn-primary w-full">🩺 New Exam <span class="text-xs opacity-70">(Ctrl+E)</span></button>
             </div>
             <div class="card">
-              <h3 class="font-bold mb-4">✅ System Features</h3>
+              <h3 class="font-bold mb-4">✨ New Features (v3.1)</h3>
               <ul class="text-sm space-y-2">
-                <li>✅ 3-Step Patient Registration</li>
-                <li>✅ Complete Vital Signs + BMI</li>
-                <li>✅ Voice Input on All Fields</li>
-                <li>✅ 6 Quick Templates</li>
-                <li>✅ Smart Suggestions</li>
-                <li>✅ Professional PDF Generation</li>
-                <li>⏳ AI Diagnosis (Coming Soon)</li>
+                <li>✅ Dark Mode <span class="badge badge-success">NEW</span></li>
+                <li>✅ Drug Interaction Alerts <span class="badge badge-success">NEW</span></li>
+                <li>✅ Prescription History <span class="badge badge-success">NEW</span></li>
+                <li>✅ Keyboard Shortcuts <span class="badge badge-success">NEW</span></li>
+                <li>✅ CSV Export <span class="badge badge-success">NEW</span></li>
+                <li>✅ Enhanced PDF <span class="badge badge-success">NEW</span></li>
+                <li>✅ Recent Patients <span class="badge badge-success">NEW</span></li>
               </ul>
             </div>
           </div>`;
       } else if (currentScreen === 'patients') {
         content = `<h1 class="text-2xl font-bold mb-6">👥 Patients</h1>
-          <div class="mb-4"><button onclick="openModal('patientModal')" class="btn btn-success">+ Register (3-Step Wizard)</button></div>
+          <div class="mb-4 flex gap-3">
+            <button onclick="openModal('patientModal')" class="btn btn-success">+ Register</button>
+            <button onclick="exportPatientsCSV()" class="btn btn-primary">📥 Export CSV</button>
+            <input type="text" id="patientSearch" class="form-input" placeholder="Search patients... (Ctrl+S)" onkeyup="filterPatients()" style="max-width: 300px;">
+          </div>
           <div class="card">
-            <table>
-              <thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Blood</th><th>Phone</th><th>Insurance</th></tr></thead>
-              <tbody>${DB.patients.map(p => `<tr><td class="font-semibold">${p.patient_id}</td><td>${p.first_name} ${p.last_name}</td><td>${p.age}Y ${p.gender}</td><td>${p.blood_group}</td><td class="text-xs">${p.phone}</td><td class="text-xs">${p.insurance_provider || 'None'}</td></tr>`).join('')}</tbody>
+            <table id="patientTable">
+              <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Blood</th><th>Phone</th><th>Actions</th></tr></thead>
+              <tbody>${DB.patients.map(p => `<tr><td class="font-semibold">${p.patient_id}</td><td>${p.first_name} ${p.last_name}</td><td>${p.age}Y ${p.gender}</td><td>${p.blood_group}</td><td class="text-xs">${p.phone}</td><td><button onclick="viewPrescriptionHistory('${p.id}')" class="btn btn-xs btn-primary">📋 History</button></td></tr>`).join('')}</tbody>
             </table>
           </div>`;
       } else if (currentScreen === 'examinations') {
         content = `<h1 class="text-2xl font-bold mb-6">🩺 Examinations</h1>
-          <div class="mb-4"><button onclick="openModal('examinationModal')" class="btn btn-success">+ New Exam (Voice + Templates)</button></div>
+          <div class="mb-4"><button onclick="openModal('examinationModal')" class="btn btn-success">+ New Exam</button></div>
           <div class="card">
-            ${DB.examinations.length === 0 ? '<p class="text-gray-500">No examinations yet. Try voice-powered examination!</p>' : `<table>
+            ${DB.examinations.length === 0 ? '<p class="text-gray-500">No examinations yet</p>' : `<table>
               <thead><tr><th>Date</th><th>Patient</th><th>Complaint</th><th>Diagnosis</th><th>Follow-up</th></tr></thead>
               <tbody>${DB.examinations.map(e => {
                 const p = DB.patients.find(pt => pt.id === e.patient_id);
@@ -427,9 +632,26 @@
       app.innerHTML = `<div>${nav}<div class="flex">${sidebar}<main class="flex-1 p-6">${content}</main></div></div>`;
     }
 
-    console.log('✅ MediScript v3.0 - Complete System Restored');
-    console.log('Features: Voice Input, Templates, BMI, PDF, Smart Suggestions');
-    console.log('AI Diagnosis: Coming Soon (API configuration needed)');
+    window.filterPatients = function() {
+      const search = document.getElementById('patientSearch').value.toLowerCase();
+      const rows = document.querySelectorAll('#patientTable tbody tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
+      });
+    };
+
+    // Load data from localStorage
+    const savedPatients = localStorage.getItem('patients');
+    const savedExams = localStorage.getItem('examinations');
+    const savedRecent = localStorage.getItem('recentPatients');
+    
+    if (savedPatients) DB.patients = JSON.parse(savedPatients);
+    if (savedExams) DB.examinations = JSON.parse(savedExams);
+    if (savedRecent) DB.recentPatients = JSON.parse(savedRecent);
+
+    console.log('✅ MediScript v3.1 - Enterprise Features Loaded');
+    console.log('New: Dark Mode, Drug Interactions, History, Shortcuts, CSV Export');
     render();
   </script>
 </body>
