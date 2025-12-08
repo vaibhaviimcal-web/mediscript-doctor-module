@@ -3,281 +3,381 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EdgesOf MediScript - AI Doctor System</title>
+  <title>EdgesOf MediScript - Complete System</title>
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    * { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #f9fafb; }
-    .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; transition: all 0.3s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; font-size: 14px; }
+    * { font-family: system-ui; margin: 0; padding: 0; box-sizing: border-box; }
+    .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; }
     .btn-primary { background: #2563eb; color: white; }
     .btn-success { background: #10b981; color: white; }
     .btn-purple { background: #8b5cf6; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-secondary { background: white; color: #1f2937; border: 2px solid #e5e7eb; }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .form-input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; }
-    .form-input:focus { outline: none; border-color: #2563eb; }
-    .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .btn:hover { transform: translateY(-2px); }
+    .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    .form-input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
     .modal.active { display: flex; }
-    .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 90%; margin: 20px; }
-    .ai-result { background: #ede9fe; border: 2px solid #8b5cf6; border-radius: 12px; padding: 16px; margin: 16px 0; }
+    .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 1000px; max-height: 90vh; overflow-y: auto; width: 90%; }
     .ai-loading { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body class="bg-gray-50">
   <div id="app"></div>
 
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">⚙️ Settings</h2>
-        <button onclick="closeModal('settingsModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      </div>
+      <h2 class="text-2xl font-bold mb-4">⚙️ Settings</h2>
       <div class="card">
-        <h3 class="font-bold mb-4">🤖 Gemini AI Configuration <span id="apiKeyStatus"></span></h3>
-        <div class="mb-4">
-          <label class="form-label">Gemini API Key *</label>
-          <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy...">
-          <p class="text-xs text-gray-500 mt-2">Get from: <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-blue-600">Google AI Studio</a></p>
+        <h3 class="font-bold mb-3">🤖 Gemini AI <span id="apiStatus"></span></h3>
+        <input type="password" id="apiKeyInput" class="form-input mb-3" placeholder="AIzaSy...">
+        <div class="flex gap-2">
+          <button onclick="saveKey()" class="btn btn-success">💾 Save</button>
+          <button onclick="testKey()" class="btn btn-primary" id="testBtn">🧪 Test</button>
+          <button onclick="clearKey()" class="btn btn-danger">Clear</button>
         </div>
-        <div class="flex gap-3">
-          <button onclick="saveAPIKey()" class="btn btn-success">💾 Save</button>
-          <button onclick="testAPIKey()" class="btn btn-primary" id="testKeyBtn">🧪 Test</button>
-          <button onclick="clearAPIKey()" class="btn btn-danger">🗑️ Clear</button>
-        </div>
-        <div id="apiKeyTestResult" class="mt-4"></div>
+        <div id="testResult" class="mt-3"></div>
+      </div>
+      <button onclick="closeModal('settingsModal')" class="btn btn-primary mt-4">Close</button>
+    </div>
+  </div>
+
+  <!-- AI Diagnosis Modal -->
+  <div id="aiModal" class="modal">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4">🔬 AI Diagnosis</h2>
+      <textarea id="complaint" class="form-input mb-3" rows="3" placeholder="Chief complaint..."></textarea>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <input type="number" id="age" class="form-input" placeholder="Age" value="35">
+        <select id="gender" class="form-input">
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+      <div id="aiResult"></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="diagnose()" class="btn btn-purple" id="diagBtn">🔬 Diagnose</button>
+        <button onclick="closeModal('aiModal')" class="btn btn-primary">Close</button>
       </div>
     </div>
   </div>
 
-  <div id="aiDiagnosisModal" class="modal">
+  <!-- Exam Modal -->
+  <div id="examModal" class="modal">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold">🔬 AI Diagnosis</h2>
-          <p class="text-sm text-gray-600">Powered by Gemini 1.5 Flash</p>
+      <h2 class="text-2xl font-bold mb-4">🩺 New Examination</h2>
+      <form onsubmit="saveExam(event)">
+        <select id="examPatient" class="form-input mb-3" required>
+          <option value="">Select Patient</option>
+        </select>
+        <textarea id="examComplaint" class="form-input mb-3" rows="2" placeholder="Chief Complaint *" required></textarea>
+        <input type="text" id="examDiag" class="form-input mb-3" placeholder="Diagnosis *" required>
+        <textarea id="examTreat" class="form-input mb-3" rows="3" placeholder="Treatment Plan"></textarea>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-success">✅ Save</button>
+          <button type="button" onclick="openModal('aiModal')" class="btn btn-purple">🔬 AI Help</button>
+          <button type="button" onclick="closeModal('examModal')" class="btn btn-primary">Cancel</button>
         </div>
-        <button onclick="closeModal('aiDiagnosisModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      </div>
-      <div class="mb-4">
-        <label class="form-label">Chief Complaint *</label>
-        <textarea id="aiComplaint" class="form-input" rows="3" placeholder="e.g., Fever for 3 days"></textarea>
-      </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="form-label">Age</label>
-          <input type="number" id="aiAge" class="form-input" value="35">
+      </form>
+    </div>
+  </div>
+
+  <!-- Patient Modal -->
+  <div id="patModal" class="modal">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4">👤 New Patient</h2>
+      <form onsubmit="savePatient(event)">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <input type="text" id="patFirst" class="form-input" placeholder="First Name *" required>
+          <input type="text" id="patLast" class="form-input" placeholder="Last Name *" required>
         </div>
-        <div>
-          <label class="form-label">Gender</label>
-          <select id="aiGender" class="form-input">
+        <div class="grid grid-cols-3 gap-3 mb-3">
+          <input type="number" id="patAge" class="form-input" placeholder="Age *" required>
+          <select id="patGender" class="form-input">
             <option>Male</option>
             <option>Female</option>
           </select>
+          <input type="tel" id="patPhone" class="form-input" placeholder="Phone *" required>
         </div>
-      </div>
-      <div id="aiDiagnosisResult"></div>
-      <div class="flex gap-3">
-        <button onclick="getAIDiagnosis()" class="btn btn-purple" id="aiDiagnosisBtn">🔬 Get Diagnosis</button>
-        <button onclick="closeModal('aiDiagnosisModal')" class="btn btn-secondary">Cancel</button>
-      </div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-success">✅ Save</button>
+          <button type="button" onclick="closeModal('patModal')" class="btn btn-primary">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <script>
-    function getAPIKey() { return localStorage.getItem('gemini_api_key') || ''; }
-    function setAPIKey(key) { localStorage.setItem('gemini_api_key', key); updateAPIKeyStatus(); }
-    
-    function updateAPIKeyStatus() {
-      const key = getAPIKey();
-      const el = document.getElementById('apiKeyStatus');
-      if (el) el.innerHTML = key ? '<span class="text-xs text-green-600">✅ Configured</span>' : '<span class="text-xs text-red-600">⚠️ Not Set</span>';
+    let DB = {
+      patients: [{id:'p1',pid:'P001',first:'Rajesh',last:'Kumar',age:45,gender:'Male',phone:'+919876543220'}],
+      exams: []
+    };
+    let screen = 'dash';
+
+    function getKey() { return localStorage.getItem('gkey') || ''; }
+    function setKey(k) { localStorage.setItem('gkey', k); updateStatus(); }
+    function updateStatus() {
+      const el = document.getElementById('apiStatus');
+      if(el) el.innerHTML = getKey() ? '<span class="text-xs text-green-600">✅</span>' : '<span class="text-xs text-red-600">⚠️</span>';
     }
 
-    window.saveAPIKey = function() {
-      const key = document.getElementById('apiKeyInput').value.trim();
-      if (!key) { alert('Enter API key'); return; }
-      if (!key.startsWith('AIzaSy')) { alert('Invalid format'); return; }
-      setAPIKey(key);
+    window.saveKey = function() {
+      const k = document.getElementById('apiKeyInput').value.trim();
+      if(!k) { alert('Enter key'); return; }
+      setKey(k);
       alert('✅ Saved!');
       document.getElementById('apiKeyInput').value = '';
     };
 
-    window.clearAPIKey = function() {
-      if (confirm('Clear?')) {
-        localStorage.removeItem('gemini_api_key');
-        updateAPIKeyStatus();
-        alert('✅ Cleared!');
-      }
+    window.clearKey = function() {
+      if(confirm('Clear?')) { localStorage.removeItem('gkey'); updateStatus(); alert('✅ Cleared!'); }
     };
 
-    window.testAPIKey = async function() {
-      const key = getAPIKey();
-      if (!key) { alert('Save key first'); return; }
+    window.testKey = async function() {
+      const k = getKey();
+      if(!k) { alert('Save key first'); return; }
       
-      const btn = document.getElementById('testKeyBtn');
-      const result = document.getElementById('apiKeyTestResult');
+      const btn = document.getElementById('testBtn');
+      const res = document.getElementById('testResult');
       
       btn.disabled = true;
       btn.innerHTML = '<div class="ai-loading"></div> Testing...';
-      result.innerHTML = '';
+      res.innerHTML = '';
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+        // TRYING: models/gemini-pro format (with models/ prefix)
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${k}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }] })
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({contents:[{parts:[{text:'Hi'}]}]})
         });
 
-        if (res.ok) {
-          result.innerHTML = '<div class="p-4 bg-green-50 border-2 border-green-300 rounded-lg text-green-700"><strong>✅ Success!</strong> API key works!</div>';
+        if(r.ok) {
+          res.innerHTML = '<div class="p-3 bg-green-50 border-2 border-green-300 rounded text-green-700"><strong>✅ Success!</strong> API works!</div>';
         } else {
-          const err = await res.json();
-          result.innerHTML = `<div class="p-4 bg-red-50 border-2 border-red-300 rounded-lg text-red-700"><strong>❌ Error:</strong> ${err.error?.message || 'Failed'}</div>`;
+          const e = await r.json();
+          res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.error?.message || 'Failed'}</div>`;
         }
-      } catch (e) {
-        result.innerHTML = `<div class="p-4 bg-red-50 border-2 border-red-300 rounded-lg text-red-700"><strong>❌ Error:</strong> ${e.message}</div>`;
+      } catch(e) {
+        res.innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>❌ Error:</strong> ${e.message}</div>`;
       } finally {
         btn.disabled = false;
         btn.innerHTML = '🧪 Test';
       }
     };
 
-    async function callGemini(prompt) {
-      const key = getAPIKey();
-      if (!key) throw new Error('Configure API key in Settings');
+    async function callAI(prompt) {
+      const k = getKey();
+      if(!k) throw new Error('Configure API key');
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${k}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.7,maxOutputTokens:2048}
         })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || 'API Error');
+      if(!r.ok) {
+        const e = await r.json();
+        throw new Error(e.error?.message || 'API Error');
       }
 
-      const data = await res.json();
-      return data.candidates[0].content.parts[0].text;
+      const d = await r.json();
+      return d.candidates[0].content.parts[0].text;
     }
 
-    window.getAIDiagnosis = async function() {
-      const complaint = document.getElementById('aiComplaint').value;
-      if (!complaint) { alert('Enter complaint'); return; }
+    window.diagnose = async function() {
+      const c = document.getElementById('complaint').value;
+      if(!c) { alert('Enter complaint'); return; }
 
-      const btn = document.getElementById('aiDiagnosisBtn');
+      const btn = document.getElementById('diagBtn');
       btn.disabled = true;
       btn.innerHTML = '<div class="ai-loading"></div> Analyzing...';
 
       try {
-        const age = document.getElementById('aiAge').value;
-        const gender = document.getElementById('aiGender').value;
+        const a = document.getElementById('age').value;
+        const g = document.getElementById('gender').value;
         
         const prompt = `Medical AI: Analyze and provide diagnosis in JSON.
 
-Patient: ${age}Y ${gender}
-Complaint: ${complaint}
+Patient: ${a}Y ${g}
+Complaint: ${c}
 
 Return JSON:
 {
-  "diagnoses": [
-    {"name": "Diagnosis", "confidence": 85, "description": "Why", "tests": ["Test1"]}
-  ],
+  "diagnoses": [{"name": "Diagnosis", "confidence": 85, "description": "Why", "tests": ["Test1"]}],
   "recommendations": "Advice"
 }`;
 
-        const text = await callGemini(prompt);
+        const text = await callAI(prompt);
         
         let json;
         try {
           json = JSON.parse(text);
         } catch {
-          const match = text.match(/\{[\s\S]*\}/);
-          if (match) json = JSON.parse(match[0]);
+          const m = text.match(/\{[\s\S]*\}/);
+          if(m) json = JSON.parse(m[0]);
           else throw new Error('Invalid response');
         }
         
-        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-3">🔬 Results</h3>';
+        let html = '<div class="p-4 bg-purple-50 border-2 border-purple-300 rounded"><h3 class="font-bold mb-3">🔬 Results</h3>';
         
-        if (json.diagnoses) {
-          json.diagnoses.forEach((d, i) => {
-            html += `<div class="mb-3 p-3 bg-white rounded-lg border-2 border-purple-200">
+        if(json.diagnoses) {
+          json.diagnoses.forEach((d,i) => {
+            html += `<div class="mb-2 p-3 bg-white rounded border">
               <h4 class="font-bold">${i+1}. ${d.name} (${d.confidence}%)</h4>
-              <p class="text-sm mt-2">${d.description}</p>
-              ${d.tests ? `<p class="text-xs mt-2"><strong>Tests:</strong> ${d.tests.join(', ')}</p>` : ''}
+              <p class="text-sm mt-1">${d.description}</p>
+              ${d.tests ? `<p class="text-xs mt-1"><strong>Tests:</strong> ${d.tests.join(', ')}</p>` : ''}
             </div>`;
           });
         }
         
-        if (json.recommendations) {
-          html += `<div class="mt-3 p-3 bg-blue-50 rounded-lg"><strong>💡 Recommendations:</strong><p class="text-sm mt-1">${json.recommendations}</p></div>`;
+        if(json.recommendations) {
+          html += `<div class="mt-2 p-3 bg-blue-50 rounded"><strong>💡:</strong> ${json.recommendations}</div>`;
         }
         
         html += '</div>';
-        document.getElementById('aiDiagnosisResult').innerHTML = html;
+        document.getElementById('aiResult').innerHTML = html;
         
-      } catch (e) {
+      } catch(e) {
         let msg = e.message;
-        if (msg.includes('Configure API key')) {
-          msg += '<br><br><button onclick="openModal(\'settingsModal\')" class="btn btn-primary mt-2">⚙️ Settings</button>';
-        }
-        document.getElementById('aiDiagnosisResult').innerHTML = `<div class="ai-result text-red-600"><strong>Error:</strong><br>${msg}</div>`;
+        if(msg.includes('Configure')) msg += '<br><br><button onclick="openModal(\'settingsModal\')" class="btn btn-primary">⚙️ Settings</button>';
+        document.getElementById('aiResult').innerHTML = `<div class="p-3 bg-red-50 border-2 border-red-300 rounded text-red-700"><strong>Error:</strong><br>${msg}</div>`;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '🔬 Get Diagnosis';
+        btn.innerHTML = '🔬 Diagnose';
       }
+    };
+
+    window.savePatient = function(e) {
+      e.preventDefault();
+      const p = {
+        id:'p'+Date.now(),
+        pid:'P'+String(DB.patients.length+1).padStart(3,'0'),
+        first:document.getElementById('patFirst').value,
+        last:document.getElementById('patLast').value,
+        age:parseInt(document.getElementById('patAge').value),
+        gender:document.getElementById('patGender').value,
+        phone:document.getElementById('patPhone').value
+      };
+      DB.patients.push(p);
+      closeModal('patModal');
+      alert('✅ Saved!');
+      render();
+    };
+
+    window.saveExam = function(e) {
+      e.preventDefault();
+      const ex = {
+        id:'e'+Date.now(),
+        pid:document.getElementById('examPatient').value,
+        date:new Date().toISOString().split('T')[0],
+        complaint:document.getElementById('examComplaint').value,
+        diagnosis:document.getElementById('examDiag').value,
+        treatment:document.getElementById('examTreat').value
+      };
+      DB.exams.push(ex);
+      closeModal('examModal');
+      alert('✅ Saved!');
+      render();
     };
 
     window.openModal = function(id) {
       document.getElementById(id).classList.add('active');
-      if (id === 'settingsModal') {
-        updateAPIKeyStatus();
-        const key = getAPIKey();
-        if (key) document.getElementById('apiKeyInput').placeholder = `${key.substring(0, 10)}...${key.substring(key.length - 4)}`;
+      if(id==='settingsModal') {
+        updateStatus();
+        const k = getKey();
+        if(k) document.getElementById('apiKeyInput').placeholder = `${k.substring(0,10)}...${k.substring(k.length-4)}`;
       }
-      if (id === 'aiDiagnosisModal') {
-        document.getElementById('aiDiagnosisResult').innerHTML = '';
+      if(id==='examModal') {
+        const sel = document.getElementById('examPatient');
+        sel.innerHTML = '<option value="">Select Patient</option>' + DB.patients.map(p => `<option value="${p.id}">${p.pid} - ${p.first} ${p.last}</option>`).join('');
+      }
+      if(id==='aiModal') {
+        const c = document.getElementById('examComplaint')?.value || '';
+        document.getElementById('complaint').value = c;
+        document.getElementById('aiResult').innerHTML = '';
       }
     };
 
-    window.closeModal = function(id) {
-      document.getElementById(id).classList.remove('active');
-    };
+    window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
+    window.switchScreen = function(s) { screen = s; render(); };
 
     function render() {
-      const key = getAPIKey();
-      const status = key ? '✅' : '⚠️';
+      const k = getKey();
+      const st = k ? '✅' : '⚠️';
       
-      document.getElementById('app').innerHTML = `
-        <nav class="bg-gray-900 text-white p-4 flex justify-between">
-          <div class="flex gap-3 items-center">
-            <h3 class="font-bold">MediScript AI</h3>
+      const nav = `<nav class="bg-gray-900 text-white p-4 flex justify-between">
+        <div class="flex gap-3 items-center">
+          <h3 class="font-bold">MediScript AI</h3>
+        </div>
+        <button onclick="openModal('settingsModal')" class="btn btn-primary">${st} Settings</button>
+      </nav>`;
+
+      const sidebar = `<aside class="w-64 bg-gray-800 text-white p-4 min-h-screen">
+        <div class="space-y-2">
+          <a onclick="switchScreen('dash')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='dash'?'bg-gray-700':''}">📊 Dashboard</a>
+          <a onclick="switchScreen('patients')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='patients'?'bg-gray-700':''}">👥 Patients</a>
+          <a onclick="switchScreen('exams')" class="block p-3 rounded hover:bg-gray-700 cursor-pointer ${screen==='exams'?'bg-gray-700':''}">🩺 Examinations</a>
+        </div>
+      </aside>`;
+
+      let content = '';
+
+      if(screen==='dash') {
+        content = `<h1 class="text-3xl font-bold mb-6">👨‍⚕️ Dashboard</h1>
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="card cursor-pointer hover:shadow-lg" onclick="switchScreen('patients')">
+              <p class="text-gray-600 text-sm">Patients</p>
+              <p class="text-3xl font-bold text-green-600">${DB.patients.length}</p>
+            </div>
+            <div class="card cursor-pointer hover:shadow-lg" onclick="switchScreen('exams')">
+              <p class="text-gray-600 text-sm">Examinations</p>
+              <p class="text-3xl font-bold text-blue-600">${DB.exams.length}</p>
+            </div>
+            <div class="card cursor-pointer hover:shadow-lg" onclick="openModal('settingsModal')">
+              <p class="text-gray-600 text-sm">AI Status</p>
+              <p class="text-lg font-bold">${k?'✅ Ready':'⚠️ Configure'}</p>
+            </div>
           </div>
-          <button onclick="openModal('settingsModal')" class="btn btn-secondary">${status} Settings</button>
-        </nav>
-        <main class="p-6 max-w-4xl mx-auto">
-          <h1 class="text-3xl font-bold mb-6">🩺 AI Doctor Assistant</h1>
           <div class="card">
-            <h3 class="font-bold mb-4">Quick Test</h3>
-            <button onclick="openModal('aiDiagnosisModal')" class="btn btn-purple">🔬 Try AI Diagnosis</button>
-            ${!key ? '<p class="text-sm text-red-600 mt-3">⚠️ Configure API key in Settings first</p>' : '<p class="text-sm text-green-600 mt-3">✅ API key configured</p>'}
-          </div>
-        </main>
-      `;
+            <h3 class="font-bold mb-4">⚡ Quick Actions</h3>
+            <button onclick="openModal('patModal')" class="btn btn-success mr-2">+ New Patient</button>
+            <button onclick="openModal('examModal')" class="btn btn-primary">🩺 New Exam</button>
+          </div>`;
+      } else if(screen==='patients') {
+        content = `<h1 class="text-2xl font-bold mb-4">👥 Patients</h1>
+          <button onclick="openModal('patModal')" class="btn btn-success mb-4">+ Register</button>
+          <div class="card">
+            <table class="w-full">
+              <thead><tr class="border-b"><th class="text-left p-2">ID</th><th class="text-left p-2">Name</th><th class="text-left p-2">Age</th><th class="text-left p-2">Phone</th></tr></thead>
+              <tbody>${DB.patients.map(p => `<tr class="border-b"><td class="p-2">${p.pid}</td><td class="p-2">${p.first} ${p.last}</td><td class="p-2">${p.age}Y ${p.gender}</td><td class="p-2">${p.phone}</td></tr>`).join('')}</tbody>
+            </table>
+          </div>`;
+      } else if(screen==='exams') {
+        content = `<h1 class="text-2xl font-bold mb-4">🩺 Examinations</h1>
+          <button onclick="openModal('examModal')" class="btn btn-success mb-4">+ New Exam</button>
+          <div class="card">
+            ${DB.exams.length===0 ? '<p class="text-gray-500">No examinations yet</p>' : `<table class="w-full">
+              <thead><tr class="border-b"><th class="text-left p-2">Date</th><th class="text-left p-2">Patient</th><th class="text-left p-2">Complaint</th><th class="text-left p-2">Diagnosis</th></tr></thead>
+              <tbody>${DB.exams.map(e => {
+                const p = DB.patients.find(pt => pt.id === e.pid);
+                return `<tr class="border-b"><td class="p-2">${e.date}</td><td class="p-2">${p.first} ${p.last}</td><td class="p-2">${e.complaint}</td><td class="p-2">${e.diagnosis}</td></tr>`;
+              }).join('')}</tbody>
+            </table>`}
+          </div>`;
+      }
+
+      document.getElementById('app').innerHTML = `${nav}<div class="flex">${sidebar}<main class="flex-1 p-6">${content}</main></div>`;
     }
 
-    updateAPIKeyStatus();
+    updateStatus();
     render();
-    console.log('✅ MediScript loaded - Using gemini-1.5-flash');
+    console.log('✅ MediScript - Using models/gemini-pro format');
   </script>
 </body>
 </html>
