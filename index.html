@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EdgesOf MediScript - Complete Doctor Module</title>
+  <title>EdgesOf MediScript - AI-Powered Doctor Module</title>
   <link rel="icon" href="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #f9fafb; }
     .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; transition: all 0.3s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: none; font-size: 14px; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-xs { padding: 4px 8px; font-size: 11px; }
     .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; }
     .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
     .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
-    .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
     .btn-secondary { background: white; color: #1f2937; border: 2px solid #e5e7eb; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -31,7 +31,6 @@
     .badge-success { background: #d1fae5; color: #065f46; }
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-info { background: #dbeafe; color: #1e40af; }
     .badge-purple { background: #ede9fe; color: #6b21a8; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; overflow-y: auto; }
     .modal.active { display: flex; }
@@ -52,110 +51,99 @@
     .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; color: #9ca3af; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: 14px; }
     .step-item.active .step-circle { background: #2563eb; color: white; }
     .step-item.completed .step-circle { background: #10b981; color: white; }
-    .vital-input { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-    .vital-label { font-size: 12px; color: #6b7280; font-weight: 600; }
-    .vital-value { font-size: 24px; font-weight: 700; color: #1f2937; }
-    .vital-unit { font-size: 14px; color: #9ca3af; margin-left: 4px; }
+    .differential-item { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .differential-item.critical { border-color: #ef4444; background: #fef2f2; }
+    .treatment-day { background: #f9fafb; border-left: 4px solid #8b5cf6; padding: 12px; margin-bottom: 8px; border-radius: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div id="app"></div>
 
-  <!-- Enhanced Patient Registration Modal -->
-  <div id="patientModal" class="modal">
+  <!-- AI Differential Diagnosis Modal -->
+  <div id="aiDifferentialModal" class="modal">
     <div class="modal-content">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">👤 Complete Patient Registration</h2>
-        <button onclick="closeModal('patientModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div>
+          <h2 class="text-2xl font-bold">🔬 AI Differential Diagnosis</h2>
+          <p class="text-sm text-gray-600 mt-1">Rule out dangerous conditions</p>
+        </div>
+        <button onclick="closeModal('aiDifferentialModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
       </div>
-      
-      <div class="step-indicator">
-        <div class="step-item active" id="step1-indicator">
-          <div class="step-circle">1</div>
-          <p class="text-xs">Basic Info</p>
-        </div>
-        <div class="step-item" id="step2-indicator">
-          <div class="step-circle">2</div>
-          <p class="text-xs">Medical History</p>
-        </div>
-        <div class="step-item" id="step3-indicator">
-          <div class="step-circle">3</div>
-          <p class="text-xs">Insurance</p>
-        </div>
+      <div class="mb-4">
+        <label class="form-label">Symptoms & Findings *</label>
+        <textarea id="diffSymptoms" class="form-input" rows="4" placeholder="e.g., Chest pain, radiating to left arm, sweating, shortness of breath"></textarea>
       </div>
-
-      <form onsubmit="savePatient(event)">
-        <!-- Step 1: Basic Info -->
-        <div id="step1" class="wizard-step active">
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="form-label">First Name *</label><input type="text" id="patFirstName" class="form-input" required></div>
-            <div><label class="form-label">Last Name *</label><input type="text" id="patLastName" class="form-input" required></div>
-          </div>
-          <div class="grid grid-cols-3 gap-4 mb-4">
-            <div><label class="form-label">Age *</label><input type="number" id="patAge" class="form-input" required></div>
-            <div><label class="form-label">Gender *</label><select id="patGender" class="form-input"><option>Male</option><option>Female</option><option>Other</option></select></div>
-            <div><label class="form-label">Blood Group</label><select id="patBlood" class="form-input"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
-          </div>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="form-label">Phone *</label><input type="tel" id="patPhone" class="form-input" required></div>
-            <div><label class="form-label">Email</label><input type="email" id="patEmail" class="form-input"></div>
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Address</label>
-            <textarea id="patAddress" class="form-input" rows="2"></textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="form-label">Emergency Contact Name</label><input type="text" id="patEmergencyName" class="form-input"></div>
-            <div><label class="form-label">Emergency Contact Phone</label><input type="tel" id="patEmergencyPhone" class="form-input"></div>
-          </div>
-          <button type="button" onclick="nextStep(2)" class="btn btn-primary">Next →</button>
-        </div>
-
-        <!-- Step 2: Medical History -->
-        <div id="step2" class="wizard-step">
-          <div class="mb-4">
-            <label class="form-label">Known Allergies</label>
-            <textarea id="patAllergies" class="form-input" rows="2" placeholder="e.g., Penicillin, Peanuts"></textarea>
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Current Medications</label>
-            <textarea id="patCurrentMeds" class="form-input" rows="2" placeholder="e.g., Aspirin 75mg daily"></textarea>
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Past Medical History</label>
-            <textarea id="patPastHistory" class="form-input" rows="3" placeholder="e.g., Diabetes, Hypertension"></textarea>
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Family History</label>
-            <textarea id="patFamilyHistory" class="form-input" rows="2" placeholder="e.g., Father - Heart Disease"></textarea>
-          </div>
-          <div class="flex gap-3">
-            <button type="button" onclick="prevStep(1)" class="btn btn-secondary">← Back</button>
-            <button type="button" onclick="nextStep(3)" class="btn btn-primary">Next →</button>
-          </div>
-        </div>
-
-        <!-- Step 3: Insurance -->
-        <div id="step3" class="wizard-step">
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="form-label">Insurance Provider</label><input type="text" id="patInsuranceProvider" class="form-input" placeholder="e.g., Star Health"></div>
-            <div><label class="form-label">Policy Number</label><input type="text" id="patPolicyNumber" class="form-input"></div>
-          </div>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="form-label">Coverage Amount</label><input type="number" id="patCoverageAmount" class="form-input" placeholder="500000"></div>
-            <div><label class="form-label">Valid Until</label><input type="date" id="patInsuranceValidity" class="form-input"></div>
-          </div>
-          <div class="flex gap-3">
-            <button type="button" onclick="prevStep(2)" class="btn btn-secondary">← Back</button>
-            <button type="submit" class="btn btn-success">✅ Save Patient</button>
-          </div>
-        </div>
-      </form>
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div><label class="form-label">Age</label><input type="number" id="diffAge" class="form-input" value="45"></div>
+        <div><label class="form-label">Gender</label><select id="diffGender" class="form-input"><option>Male</option><option>Female</option></select></div>
+        <div><label class="form-label">Duration</label><input type="text" id="diffDuration" class="form-input" placeholder="e.g., 2 hours"></div>
+      </div>
+      <div id="aiDifferentialResult"></div>
+      <div class="flex gap-3">
+        <button onclick="getAIDifferential()" class="btn btn-purple" id="aiDifferentialBtn">🔬 Analyze Differentials</button>
+        <button onclick="closeModal('aiDifferentialModal')" class="btn btn-secondary">Cancel</button>
+      </div>
     </div>
   </div>
 
-  <!-- Clinical Examination Modal -->
+  <!-- AI Treatment Planner Modal -->
+  <div id="aiTreatmentModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">📋 AI Treatment Planner</h2>
+          <p class="text-sm text-gray-600 mt-1">Step-by-step treatment protocol</p>
+        </div>
+        <button onclick="closeModal('aiTreatmentModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Confirmed Diagnosis *</label>
+        <input type="text" id="treatDiagnosis" class="form-input" placeholder="e.g., Acute Bronchitis" required>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div><label class="form-label">Severity</label><select id="treatSeverity" class="form-input"><option>Mild</option><option>Moderate</option><option>Severe</option></select></div>
+        <div><label class="form-label">Comorbidities</label><input type="text" id="treatComorbid" class="form-input" placeholder="e.g., Diabetes, HTN"></div>
+      </div>
+      <div id="aiTreatmentResult"></div>
+      <div class="flex gap-3">
+        <button onclick="getAITreatment()" class="btn btn-purple" id="aiTreatmentBtn">📋 Generate Protocol</button>
+        <button onclick="closeModal('aiTreatmentModal')" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Follow-up Predictor Modal -->
+  <div id="aiFollowupModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">📅 AI Follow-up Predictor</h2>
+          <p class="text-sm text-gray-600 mt-1">Optimal return date prediction</p>
+        </div>
+        <button onclick="closeModal('aiFollowupModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Diagnosis *</label>
+        <input type="text" id="followDiagnosis" class="form-input" placeholder="e.g., Pneumonia" required>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div><label class="form-label">Treatment Duration</label><input type="text" id="followTreatment" class="form-input" placeholder="e.g., 7 days antibiotics"></div>
+        <div><label class="form-label">Severity</label><select id="followSeverity" class="form-input"><option>Mild</option><option>Moderate</option><option>Severe</option></select></div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Special Considerations</label>
+        <textarea id="followNotes" class="form-input" rows="2" placeholder="e.g., Elderly patient, lives alone"></textarea>
+      </div>
+      <div id="aiFollowupResult"></div>
+      <div class="flex gap-3">
+        <button onclick="getAIFollowup()" class="btn btn-purple" id="aiFollowupBtn">📅 Predict Follow-up</button>
+        <button onclick="closeModal('aiFollowupModal')" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clinical Examination Modal (Enhanced) -->
   <div id="examinationModal" class="modal">
     <div class="modal-content">
       <div class="flex justify-between items-center mb-6">
@@ -164,166 +152,80 @@
       </div>
 
       <form onsubmit="saveExamination(event)">
-        <!-- Patient Selection -->
         <div class="mb-4">
           <label class="form-label">Patient *</label>
-          <select id="examPatient" class="form-input" required onchange="loadPatientVitals()"></select>
+          <select id="examPatient" class="form-input" required></select>
         </div>
 
-        <!-- Vital Signs -->
         <div class="card">
           <h3 class="font-bold mb-4">📊 Vital Signs</h3>
           <div class="grid grid-cols-3 gap-4">
-            <div class="vital-input">
-              <div class="vital-label">Blood Pressure</div>
-              <input type="text" id="vitalBP" class="form-input" placeholder="120/80" style="margin-top: 8px;">
-            </div>
-            <div class="vital-input">
-              <div class="vital-label">Temperature</div>
-              <input type="text" id="vitalTemp" class="form-input" placeholder="98.6°F" style="margin-top: 8px;">
-            </div>
-            <div class="vital-input">
-              <div class="vital-label">Pulse Rate</div>
-              <input type="text" id="vitalPulse" class="form-input" placeholder="72 bpm" style="margin-top: 8px;">
-            </div>
-            <div class="vital-input">
-              <div class="vital-label">SpO2</div>
-              <input type="text" id="vitalSpO2" class="form-input" placeholder="98%" style="margin-top: 8px;">
-            </div>
-            <div class="vital-input">
-              <div class="vital-label">Weight (kg)</div>
-              <input type="number" id="vitalWeight" class="form-input" placeholder="70" style="margin-top: 8px;" onchange="calculateBMI()">
-            </div>
-            <div class="vital-input">
-              <div class="vital-label">Height (cm)</div>
-              <input type="number" id="vitalHeight" class="form-input" placeholder="170" style="margin-top: 8px;" onchange="calculateBMI()">
-            </div>
-          </div>
-          <div class="mt-4 p-4 bg-blue-50 rounded-lg" id="bmiDisplay" style="display: none;">
-            <div class="text-sm font-semibold text-blue-700">BMI: <span id="bmiValue"></span></div>
-            <div class="text-xs text-blue-600" id="bmiCategory"></div>
+            <div><label class="form-label">BP</label><input type="text" id="vitalBP" class="form-input" placeholder="120/80"></div>
+            <div><label class="form-label">Temp</label><input type="text" id="vitalTemp" class="form-input" placeholder="98.6°F"></div>
+            <div><label class="form-label">Pulse</label><input type="text" id="vitalPulse" class="form-input" placeholder="72"></div>
           </div>
         </div>
 
-        <!-- Chief Complaint -->
         <div class="mb-4">
           <label class="form-label">Chief Complaint *</label>
-          <textarea id="examComplaint" class="form-input" rows="2" required placeholder="e.g., Fever and cough for 3 days"></textarea>
+          <textarea id="examComplaint" class="form-input" rows="2" required></textarea>
         </div>
 
-        <!-- History of Present Illness -->
-        <div class="mb-4">
-          <label class="form-label">History of Present Illness</label>
-          <textarea id="examHPI" class="form-input" rows="3" placeholder="Detailed history of current symptoms"></textarea>
-        </div>
-
-        <!-- Physical Examination -->
-        <div class="card">
-          <h3 class="font-bold mb-4">🔍 Physical Examination</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="form-label">General Appearance</label>
-              <textarea id="examGeneral" class="form-input" rows="2" placeholder="Alert, oriented, no distress"></textarea>
-            </div>
-            <div>
-              <label class="form-label">Cardiovascular</label>
-              <textarea id="examCardio" class="form-input" rows="2" placeholder="S1 S2 normal, no murmurs"></textarea>
-            </div>
-            <div>
-              <label class="form-label">Respiratory</label>
-              <textarea id="examResp" class="form-input" rows="2" placeholder="Clear breath sounds bilaterally"></textarea>
-            </div>
-            <div>
-              <label class="form-label">Abdomen</label>
-              <textarea id="examAbdomen" class="form-input" rows="2" placeholder="Soft, non-tender"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- Diagnosis -->
         <div class="mb-4">
           <label class="form-label">Provisional Diagnosis *</label>
-          <input type="text" id="examDiagnosis" class="form-input" required placeholder="e.g., Upper Respiratory Tract Infection">
-          <button type="button" onclick="openModal('aiDiagnosisModal')" class="btn btn-purple btn-sm mt-2">🤖 AI Diagnosis Assistant</button>
+          <input type="text" id="examDiagnosis" class="form-input" required>
+          <div class="flex gap-2 mt-2">
+            <button type="button" onclick="openModal('aiDifferentialModal')" class="btn btn-purple btn-xs">🔬 Differential Diagnosis</button>
+            <button type="button" onclick="openModal('aiTreatmentModal')" class="btn btn-purple btn-xs">📋 Treatment Plan</button>
+            <button type="button" onclick="openModal('aiFollowupModal')" class="btn btn-purple btn-xs">📅 Follow-up Date</button>
+          </div>
         </div>
 
-        <!-- Treatment Plan -->
         <div class="mb-4">
           <label class="form-label">Treatment Plan</label>
-          <textarea id="examTreatment" class="form-input" rows="3" placeholder="Medicines, procedures, advice"></textarea>
-          <button type="button" onclick="openModal('aiPrescriptionModal')" class="btn btn-purple btn-sm mt-2">🤖 AI Prescription Generator</button>
+          <textarea id="examTreatment" class="form-input" rows="3"></textarea>
         </div>
 
-        <!-- Follow-up -->
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="form-label">Follow-up Date</label>
-            <input type="date" id="examFollowup" class="form-input">
-          </div>
-          <div>
-            <label class="form-label">Follow-up Notes</label>
-            <input type="text" id="examFollowupNotes" class="form-input" placeholder="e.g., Review after 5 days">
-          </div>
+          <div><label class="form-label">Follow-up Date</label><input type="date" id="examFollowup" class="form-input"></div>
+          <div><label class="form-label">Follow-up Notes</label><input type="text" id="examFollowupNotes" class="form-input"></div>
         </div>
 
         <div class="flex gap-3">
           <button type="submit" class="btn btn-success">✅ Save Examination</button>
-          <button type="button" onclick="generatePrescriptionPDF()" class="btn btn-primary">📄 Generate Prescription PDF</button>
+          <button type="button" onclick="generatePrescriptionPDF()" class="btn btn-primary">📄 Generate PDF</button>
           <button type="button" onclick="closeModal('examinationModal')" class="btn btn-secondary">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- AI Modals (keeping existing ones) -->
-  <div id="aiDiagnosisModal" class="modal">
+  <!-- Patient Registration Modal (Simplified for space) -->
+  <div id="patientModal" class="modal">
     <div class="modal-content">
       <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold">🔬 AI Diagnosis Assistant</h2>
-          <p class="text-sm text-gray-600 mt-1">Powered by Google Gemini 2.0 Flash</p>
+        <h2 class="text-2xl font-bold">👤 Register Patient</h2>
+        <button onclick="closeModal('patientModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <form onsubmit="savePatient(event)">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div><label class="form-label">First Name *</label><input type="text" id="patFirstName" class="form-input" required></div>
+          <div><label class="form-label">Last Name *</label><input type="text" id="patLastName" class="form-input" required></div>
         </div>
-        <button onclick="closeModal('aiDiagnosisModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      </div>
-      <div class="mb-4">
-        <label class="form-label">Chief Complaint *</label>
-        <textarea id="aiComplaint" class="form-input" rows="3" placeholder="e.g., Fever and headache for 3 days"></textarea>
-      </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div><label class="form-label">Age</label><input type="number" id="aiAge" class="form-input" value="35"></div>
-        <div><label class="form-label">Gender</label><select id="aiGender" class="form-input"><option>Male</option><option>Female</option><option>Other</option></select></div>
-      </div>
-      <div id="aiDiagnosisResult"></div>
-      <div class="flex gap-3">
-        <button onclick="getAIDiagnosis()" class="btn btn-purple" id="aiDiagnosisBtn">🔬 Get AI Diagnosis</button>
-        <button onclick="closeModal('aiDiagnosisModal')" class="btn btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="aiPrescriptionModal" class="modal">
-    <div class="modal-content">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold">💊 AI Prescription Generator</h2>
-          <p class="text-sm text-gray-600 mt-1">Smart medicine recommendations</p>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div><label class="form-label">Age *</label><input type="number" id="patAge" class="form-input" required></div>
+          <div><label class="form-label">Gender *</label><select id="patGender" class="form-input"><option>Male</option><option>Female</option></select></div>
+          <div><label class="form-label">Blood</label><select id="patBlood" class="form-input"><option>O+</option><option>A+</option><option>B+</option><option>AB+</option></select></div>
         </div>
-        <button onclick="closeModal('aiPrescriptionModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      </div>
-      <div class="mb-4">
-        <label class="form-label">Diagnosis *</label>
-        <input type="text" id="rxDiagnosis" class="form-input" placeholder="e.g., Viral Fever" required>
-      </div>
-      <div class="grid grid-cols-3 gap-4 mb-4">
-        <div><label class="form-label">Age *</label><input type="number" id="rxAge" class="form-input" value="35"></div>
-        <div><label class="form-label">Weight (kg) *</label><input type="number" id="rxWeight" class="form-input" value="70"></div>
-        <div><label class="form-label">Gender *</label><select id="rxGender" class="form-input"><option>Male</option><option>Female</option></select></div>
-      </div>
-      <div id="aiPrescriptionResult"></div>
-      <div class="flex gap-3">
-        <button onclick="getAIPrescription()" class="btn btn-purple" id="aiPrescriptionBtn">💊 Generate</button>
-        <button onclick="closeModal('aiPrescriptionModal')" class="btn btn-secondary">Cancel</button>
-      </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div><label class="form-label">Phone *</label><input type="tel" id="patPhone" class="form-input" required></div>
+          <div><label class="form-label">Email</label><input type="email" id="patEmail" class="form-input"></div>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" class="btn btn-success">✅ Save</button>
+          <button type="button" onclick="closeModal('patientModal')" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -332,61 +234,320 @@
     
     let DB = {
       patients: [
-        {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220', email: 'rajesh@example.com'},
-        {id: 'p2', patient_id: 'P002', first_name: 'Priya', last_name: 'Sharma', age: 32, gender: 'Female', blood_group: 'A+', phone: '+919876543221', email: 'priya@example.com'},
-        {id: 'p3', patient_id: 'P003', first_name: 'Kumar', last_name: 'Vaibhav', age: 28, gender: 'Male', blood_group: 'A-', phone: '09999456126', email: 'kumar@example.com'}
+        {id: 'p1', patient_id: 'P001', first_name: 'Rajesh', last_name: 'Kumar', age: 45, gender: 'Male', blood_group: 'O+', phone: '+919876543220'},
+        {id: 'p2', patient_id: 'P002', first_name: 'Priya', last_name: 'Sharma', age: 32, gender: 'Female', blood_group: 'A+', phone: '+919876543221'},
+        {id: 'p3', patient_id: 'P003', first_name: 'Kumar', last_name: 'Vaibhav', age: 28, gender: 'Male', blood_group: 'A-', phone: '09999456126'}
       ],
-      examinations: [],
-      prescriptions: []
+      examinations: []
     };
 
     let currentScreen = 'dashboard';
-    let currentStep = 1;
-    let currentExamination = {};
 
-    // Wizard Navigation
-    window.nextStep = function(step) {
-      document.getElementById(`step${currentStep}`).classList.remove('active');
-      document.getElementById(`step${currentStep}-indicator`).classList.add('completed');
-      document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
-      
-      currentStep = step;
-      
-      document.getElementById(`step${step}`).classList.add('active');
-      document.getElementById(`step${step}-indicator`).classList.add('active');
-    };
+    async function callGemini(prompt) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        })
+      });
+      const data = await response.json();
+      return data.candidates[0].content.parts[0].text;
+    }
 
-    window.prevStep = function(step) {
-      document.getElementById(`step${currentStep}`).classList.remove('active');
-      document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
-      
-      currentStep = step;
-      
-      document.getElementById(`step${step}`).classList.add('active');
-      document.getElementById(`step${step}-indicator`).classList.add('active');
-      document.getElementById(`step${currentStep + 1}-indicator`).classList.remove('completed');
-    };
+    // AI DIFFERENTIAL DIAGNOSIS
+    window.getAIDifferential = async function() {
+      const symptoms = document.getElementById('diffSymptoms').value;
+      if (!symptoms) { alert('Enter symptoms'); return; }
 
-    // BMI Calculator
-    window.calculateBMI = function() {
-      const weight = parseFloat(document.getElementById('vitalWeight').value);
-      const height = parseFloat(document.getElementById('vitalHeight').value);
-      
-      if (weight && height) {
-        const heightM = height / 100;
-        const bmi = (weight / (heightM * heightM)).toFixed(1);
+      const btn = document.getElementById('aiDifferentialBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="ai-loading"></div> Analyzing...';
+
+      try {
+        const prompt = `Expert diagnostician. Differential diagnosis for: ${symptoms}
+Age: ${document.getElementById('diffAge').value}, Gender: ${document.getElementById('diffGender').value}, Duration: ${document.getElementById('diffDuration').value}
+
+Provide JSON:
+{
+  "differentials": [
+    {
+      "diagnosis": "Most likely diagnosis",
+      "probability": 70,
+      "reasoning": "Why this is likely",
+      "criticalFeatures": ["Feature 1", "Feature 2"],
+      "isCritical": false
+    }
+  ],
+  "redFlags": ["Red flag 1", "Red flag 2"],
+  "emergencyProtocol": "When to call emergency",
+  "nextSteps": "Immediate actions needed"
+}
+
+Include at least 3 differentials. Mark life-threatening conditions as isCritical: true.`;
+
+        const text = await callGemini(prompt);
+        const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
         
-        document.getElementById('bmiValue').textContent = bmi;
-        document.getElementById('bmiDisplay').style.display = 'block';
+        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-4">🔬 Differential Diagnosis</h3>';
         
-        let category = '';
-        if (bmi < 18.5) category = 'Underweight';
-        else if (bmi < 25) category = 'Normal weight';
-        else if (bmi < 30) category = 'Overweight';
-        else category = 'Obese';
-        
-        document.getElementById('bmiCategory').textContent = `Category: ${category}`;
+        json.differentials.forEach((d, i) => {
+          const criticalClass = d.isCritical ? 'critical' : '';
+          html += `<div class="differential-item ${criticalClass}">
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-bold text-lg">${i+1}. ${d.diagnosis}</h4>
+              <span class="badge ${d.isCritical ? 'badge-danger' : 'badge-purple'}">${d.probability}%</span>
+            </div>
+            <p class="text-sm text-gray-700 mb-2">${d.reasoning}</p>
+            <p class="text-xs"><strong>Key Features:</strong> ${d.criticalFeatures.join(', ')}</p>
+            ${d.isCritical ? '<p class="text-xs text-red-600 mt-2"><strong>⚠️ CRITICAL - Requires immediate attention</strong></p>' : ''}
+          </div>`;
+        });
+
+        if (json.redFlags && json.redFlags.length > 0) {
+          html += `<div class="mt-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+            <strong class="text-red-700">🚨 Red Flags:</strong>
+            <ul class="text-sm text-red-600 mt-2 list-disc list-inside">
+              ${json.redFlags.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+          </div>`;
+        }
+
+        if (json.emergencyProtocol) {
+          html += `<div class="mt-3 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+            <strong class="text-orange-700">⚡ Emergency Protocol:</strong>
+            <p class="text-sm text-orange-600 mt-1">${json.emergencyProtocol}</p>
+          </div>`;
+        }
+
+        if (json.nextSteps) {
+          html += `<div class="mt-3 p-3 bg-blue-50 rounded-lg">
+            <strong class="text-blue-700">📋 Next Steps:</strong>
+            <p class="text-sm text-blue-600 mt-1">${json.nextSteps}</p>
+          </div>`;
+        }
+
+        html += '</div>';
+        document.getElementById('aiDifferentialResult').innerHTML = html;
+      } catch (e) {
+        console.error(e);
+        document.getElementById('aiDifferentialResult').innerHTML = '<div class="ai-result text-red-600">Error analyzing. Try again.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔬 Analyze Differentials';
       }
+    };
+
+    // AI TREATMENT PLANNER
+    window.getAITreatment = async function() {
+      const diagnosis = document.getElementById('treatDiagnosis').value;
+      if (!diagnosis) { alert('Enter diagnosis'); return; }
+
+      const btn = document.getElementById('aiTreatmentBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="ai-loading"></div> Planning...';
+
+      try {
+        const prompt = `Treatment protocol expert. Create detailed treatment plan for: ${diagnosis}
+Severity: ${document.getElementById('treatSeverity').value}
+Comorbidities: ${document.getElementById('treatComorbid').value}
+
+Provide JSON:
+{
+  "treatmentPlan": {
+    "dayByDay": [
+      {
+        "day": "Day 1-3",
+        "medications": ["Med 1 - dosage", "Med 2 - dosage"],
+        "instructions": "What to do",
+        "monitoring": "What to watch"
+      }
+    ],
+    "lifestyle": ["Lifestyle modification 1", "Lifestyle modification 2"],
+    "diet": ["Dietary recommendation 1", "Dietary recommendation 2"],
+    "warningSign": ["Warning sign 1", "Warning sign 2"],
+    "emergencyCriteria": "When to seek emergency care",
+    "expectedOutcome": "What to expect",
+    "duration": "Total treatment duration"
+  }
+}`;
+
+        const text = await callGemini(prompt);
+        const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+        const plan = json.treatmentPlan;
+        
+        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-4">📋 Treatment Protocol</h3>';
+        
+        html += '<div class="mb-4"><h4 class="font-bold mb-2">📅 Day-by-Day Plan:</h4>';
+        plan.dayByDay.forEach(day => {
+          html += `<div class="treatment-day">
+            <h5 class="font-bold text-purple-700">${day.day}</h5>
+            <p class="text-sm mt-1"><strong>Medications:</strong></p>
+            <ul class="text-sm list-disc list-inside ml-2">
+              ${day.medications.map(m => `<li>${m}</li>`).join('')}
+            </ul>
+            <p class="text-sm mt-2"><strong>Instructions:</strong> ${day.instructions}</p>
+            <p class="text-sm mt-1"><strong>Monitor:</strong> ${day.monitoring}</p>
+          </div>`;
+        });
+        html += '</div>';
+
+        html += `<div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="p-3 bg-green-50 rounded-lg">
+            <strong class="text-green-700">🥗 Diet:</strong>
+            <ul class="text-sm text-green-600 mt-1 list-disc list-inside">
+              ${plan.diet.map(d => `<li>${d}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-lg">
+            <strong class="text-blue-700">🏃 Lifestyle:</strong>
+            <ul class="text-sm text-blue-600 mt-1 list-disc list-inside">
+              ${plan.lifestyle.map(l => `<li>${l}</li>`).join('')}
+            </ul>
+          </div>
+        </div>`;
+
+        html += `<div class="p-3 bg-yellow-50 border-2 border-yellow-300 rounded-lg mb-3">
+          <strong class="text-yellow-700">⚠️ Warning Signs:</strong>
+          <ul class="text-sm text-yellow-600 mt-1 list-disc list-inside">
+            ${plan.warningSign.map(w => `<li>${w}</li>`).join('')}
+          </ul>
+        </div>`;
+
+        html += `<div class="p-3 bg-red-50 border-2 border-red-300 rounded-lg mb-3">
+          <strong class="text-red-700">🚨 Seek Emergency Care If:</strong>
+          <p class="text-sm text-red-600 mt-1">${plan.emergencyCriteria}</p>
+        </div>`;
+
+        html += `<div class="p-3 bg-purple-50 rounded-lg">
+          <p class="text-sm"><strong>Expected Outcome:</strong> ${plan.expectedOutcome}</p>
+          <p class="text-sm mt-1"><strong>Duration:</strong> ${plan.duration}</p>
+        </div>`;
+
+        html += '<button onclick="copyTreatmentToForm()" class="btn btn-primary btn-sm mt-3">📋 Copy to Treatment Plan</button>';
+        html += '</div>';
+        
+        document.getElementById('aiTreatmentResult').innerHTML = html;
+        window.currentTreatmentPlan = plan;
+      } catch (e) {
+        console.error(e);
+        document.getElementById('aiTreatmentResult').innerHTML = '<div class="ai-result text-red-600">Error generating plan. Try again.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📋 Generate Protocol';
+      }
+    };
+
+    window.copyTreatmentToForm = function() {
+      const plan = window.currentTreatmentPlan;
+      let text = 'TREATMENT PLAN:\n\n';
+      plan.dayByDay.forEach(day => {
+        text += `${day.day}:\n`;
+        day.medications.forEach(m => text += `- ${m}\n`);
+        text += `Instructions: ${day.instructions}\n\n`;
+      });
+      text += '\nLIFESTYLE:\n' + plan.lifestyle.join('\n');
+      text += '\n\nDIET:\n' + plan.diet.join('\n');
+      document.getElementById('examTreatment').value = text;
+      closeModal('aiTreatmentModal');
+      alert('✅ Treatment plan copied to form!');
+    };
+
+    // AI FOLLOW-UP PREDICTOR
+    window.getAIFollowup = async function() {
+      const diagnosis = document.getElementById('followDiagnosis').value;
+      if (!diagnosis) { alert('Enter diagnosis'); return; }
+
+      const btn = document.getElementById('aiFollowupBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="ai-loading"></div> Predicting...';
+
+      try {
+        const prompt = `Follow-up scheduling expert. Predict optimal follow-up for: ${diagnosis}
+Treatment: ${document.getElementById('followTreatment').value}
+Severity: ${document.getElementById('followSeverity').value}
+Notes: ${document.getElementById('followNotes').value}
+
+Provide JSON:
+{
+  "followup": {
+    "recommendedDays": 7,
+    "recommendedDate": "Calculate from today",
+    "reasoning": "Why this timing",
+    "criticalCheckpoints": ["Checkpoint 1", "Checkpoint 2"],
+    "alternativeSchedule": "If patient can't make it",
+    "urgentFollowupIf": ["Condition 1", "Condition 2"],
+    "whatToMonitor": ["Monitor 1", "Monitor 2"]
+  }
+}`;
+
+        const text = await callGemini(prompt);
+        const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+        const followup = json.followup;
+        
+        const followupDate = new Date();
+        followupDate.setDate(followupDate.getDate() + followup.recommendedDays);
+        const dateStr = followupDate.toISOString().split('T')[0];
+        
+        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-4">📅 Follow-up Prediction</h3>';
+        
+        html += `<div class="p-4 bg-purple-50 border-2 border-purple-300 rounded-lg mb-4">
+          <div class="text-center">
+            <p class="text-sm text-purple-600">Recommended Follow-up</p>
+            <p class="text-3xl font-bold text-purple-700 my-2">${followup.recommendedDays} Days</p>
+            <p class="text-lg font-semibold text-purple-600">${dateStr}</p>
+          </div>
+        </div>`;
+
+        html += `<div class="p-3 bg-blue-50 rounded-lg mb-3">
+          <strong class="text-blue-700">💡 Reasoning:</strong>
+          <p class="text-sm text-blue-600 mt-1">${followup.reasoning}</p>
+        </div>`;
+
+        html += `<div class="p-3 bg-green-50 rounded-lg mb-3">
+          <strong class="text-green-700">✅ Critical Checkpoints:</strong>
+          <ul class="text-sm text-green-600 mt-1 list-disc list-inside">
+            ${followup.criticalCheckpoints.map(c => `<li>${c}</li>`).join('')}
+          </ul>
+        </div>`;
+
+        html += `<div class="p-3 bg-yellow-50 rounded-lg mb-3">
+          <strong class="text-yellow-700">📊 What to Monitor:</strong>
+          <ul class="text-sm text-yellow-600 mt-1 list-disc list-inside">
+            ${followup.whatToMonitor.map(m => `<li>${m}</li>`).join('')}
+          </ul>
+        </div>`;
+
+        html += `<div class="p-3 bg-red-50 border-2 border-red-300 rounded-lg mb-3">
+          <strong class="text-red-700">🚨 Urgent Follow-up If:</strong>
+          <ul class="text-sm text-red-600 mt-1 list-disc list-inside">
+            ${followup.urgentFollowupIf.map(u => `<li>${u}</li>`).join('')}
+          </ul>
+        </div>`;
+
+        html += `<div class="p-3 bg-gray-50 rounded-lg">
+          <strong>Alternative Schedule:</strong>
+          <p class="text-sm text-gray-600 mt-1">${followup.alternativeSchedule}</p>
+        </div>`;
+
+        html += `<button onclick="setFollowupDate('${dateStr}')" class="btn btn-primary btn-sm mt-3">📅 Set Follow-up Date</button>`;
+        html += '</div>';
+        
+        document.getElementById('aiFollowupResult').innerHTML = html;
+      } catch (e) {
+        console.error(e);
+        document.getElementById('aiFollowupResult').innerHTML = '<div class="ai-result text-red-600">Error predicting. Try again.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📅 Predict Follow-up';
+      }
+    };
+
+    window.setFollowupDate = function(date) {
+      document.getElementById('examFollowup').value = date;
+      closeModal('aiFollowupModal');
+      alert('✅ Follow-up date set!');
     };
 
     // Save Patient
@@ -401,24 +562,11 @@
         gender: document.getElementById('patGender').value,
         blood_group: document.getElementById('patBlood').value,
         phone: document.getElementById('patPhone').value,
-        email: document.getElementById('patEmail').value,
-        address: document.getElementById('patAddress').value,
-        emergency_contact_name: document.getElementById('patEmergencyName').value,
-        emergency_contact_phone: document.getElementById('patEmergencyPhone').value,
-        allergies: document.getElementById('patAllergies').value,
-        current_medications: document.getElementById('patCurrentMeds').value,
-        past_medical_history: document.getElementById('patPastHistory').value,
-        family_history: document.getElementById('patFamilyHistory').value,
-        insurance_provider: document.getElementById('patInsuranceProvider').value,
-        policy_number: document.getElementById('patPolicyNumber').value,
-        coverage_amount: document.getElementById('patCoverageAmount').value,
-        insurance_validity: document.getElementById('patInsuranceValidity').value,
-        created_at: new Date().toISOString()
+        email: document.getElementById('patEmail').value
       };
       DB.patients.push(p);
       closeModal('patientModal');
-      currentStep = 1;
-      alert('✅ Patient registered successfully!');
+      alert('✅ Patient saved!');
       render();
     };
 
@@ -432,20 +580,9 @@
         vitals: {
           bp: document.getElementById('vitalBP').value,
           temp: document.getElementById('vitalTemp').value,
-          pulse: document.getElementById('vitalPulse').value,
-          spo2: document.getElementById('vitalSpO2').value,
-          weight: document.getElementById('vitalWeight').value,
-          height: document.getElementById('vitalHeight').value,
-          bmi: document.getElementById('bmiValue').textContent
+          pulse: document.getElementById('vitalPulse').value
         },
         chief_complaint: document.getElementById('examComplaint').value,
-        hpi: document.getElementById('examHPI').value,
-        physical_exam: {
-          general: document.getElementById('examGeneral').value,
-          cardio: document.getElementById('examCardio').value,
-          resp: document.getElementById('examResp').value,
-          abdomen: document.getElementById('examAbdomen').value
-        },
         diagnosis: document.getElementById('examDiagnosis').value,
         treatment_plan: document.getElementById('examTreatment').value,
         followup_date: document.getElementById('examFollowup').value,
@@ -453,13 +590,12 @@
       };
       
       DB.examinations.push(exam);
-      currentExamination = exam;
       closeModal('examinationModal');
-      alert('✅ Examination saved successfully!');
+      alert('✅ Examination saved!');
       render();
     };
 
-    // Generate Prescription PDF
+    // Generate PDF
     window.generatePrescriptionPDF = function() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -467,12 +603,8 @@
       const patientId = document.getElementById('examPatient').value;
       const patient = DB.patients.find(p => p.id === patientId);
       
-      if (!patient) {
-        alert('Please select a patient first');
-        return;
-      }
+      if (!patient) { alert('Select patient first'); return; }
 
-      // Header
       doc.setFillColor(37, 99, 235);
       doc.rect(0, 0, 210, 40, 'F');
       
@@ -483,11 +615,8 @@
       
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      doc.text('123 Medical Street, Mumbai, Maharashtra 400001', 105, 22, { align: 'center' });
-      doc.text('Phone: +91-9876543210 | Email: info@cityhealthclinic.com', 105, 28, { align: 'center' });
-      doc.text('Dr. Rajesh Sharma, MBBS, MD | Reg. No: MCI-12345', 105, 34, { align: 'center' });
+      doc.text('Dr. Rajesh Sharma, MBBS, MD | Reg: MCI-12345', 105, 28, { align: 'center' });
 
-      // Patient Info
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
@@ -496,133 +625,26 @@
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60);
-      doc.text(`Patient ID: ${patient.patient_id}`, 150, 60);
-      
-      doc.text(`Patient Name: ${patient.first_name} ${patient.last_name}`, 20, 68);
+      doc.text(`Patient: ${patient.first_name} ${patient.last_name}`, 20, 68);
       doc.text(`Age/Gender: ${patient.age}Y / ${patient.gender}`, 20, 75);
-      doc.text(`Phone: ${patient.phone}`, 20, 82);
 
-      // Vitals
       doc.setFont(undefined, 'bold');
-      doc.text('Vital Signs:', 20, 92);
+      doc.text('Diagnosis:', 20, 90);
       doc.setFont(undefined, 'normal');
-      const vitals = `BP: ${document.getElementById('vitalBP').value} | Temp: ${document.getElementById('vitalTemp').value} | Pulse: ${document.getElementById('vitalPulse').value} | SpO2: ${document.getElementById('vitalSpO2').value}`;
-      doc.text(vitals, 20, 99);
+      doc.text(document.getElementById('examDiagnosis').value, 20, 97);
 
-      // Diagnosis
       doc.setFont(undefined, 'bold');
-      doc.text('Diagnosis:', 20, 109);
-      doc.setFont(undefined, 'normal');
-      doc.text(document.getElementById('examDiagnosis').value, 20, 116);
-
-      // Treatment
-      doc.setFont(undefined, 'bold');
-      doc.text('Treatment Plan:', 20, 126);
+      doc.text('Treatment:', 20, 110);
       doc.setFont(undefined, 'normal');
       const treatment = doc.splitTextToSize(document.getElementById('examTreatment').value, 170);
-      doc.text(treatment, 20, 133);
+      doc.text(treatment, 20, 117);
 
-      // Follow-up
-      const followup = document.getElementById('examFollowup').value;
-      if (followup) {
-        doc.setFont(undefined, 'bold');
-        doc.text('Follow-up:', 20, 160);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Next visit: ${followup}`, 20, 167);
-      }
-
-      // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text('This is a computer-generated prescription and does not require a signature.', 105, 280, { align: 'center' });
-      doc.text('For any queries, please contact the clinic.', 105, 285, { align: 'center' });
-
-      // Save
-      doc.save(`Prescription_${patient.patient_id}_${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('✅ Prescription PDF generated successfully!');
-    };
-
-    // AI Functions
-    async function callGemini(prompt) {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      });
-      const data = await response.json();
-      return data.candidates[0].content.parts[0].text;
-    }
-
-    window.getAIDiagnosis = async function() {
-      const complaint = document.getElementById('aiComplaint').value;
-      if (!complaint) { alert('Enter complaint'); return; }
-
-      const btn = document.getElementById('aiDiagnosisBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="ai-loading"></div> Analyzing...';
-
-      try {
-        const prompt = `Medical AI. Analyze: ${complaint}, Age: ${document.getElementById('aiAge').value}, Gender: ${document.getElementById('aiGender').value}. JSON only: {"diagnoses":[{"name":"","confidence":85,"description":"","recommendedTests":[],"urgency":"moderate"}],"recommendations":""}`;
-        
-        const text = await callGemini(prompt);
-        const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
-        
-        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-3">🔬 Results</h3>';
-        json.diagnoses.forEach((d, i) => {
-          html += `<div class="mb-3"><h4 class="font-bold">${i+1}. ${d.name} <span class="badge badge-purple">${d.confidence}%</span></h4><p class="text-sm">${d.description}</p><p class="text-xs mt-1">Tests: ${d.recommendedTests.join(', ')}</p></div>`;
-        });
-        html += `<p class="text-sm mt-3"><strong>💡</strong> ${json.recommendations}</p></div>`;
-        document.getElementById('aiDiagnosisResult').innerHTML = html;
-      } catch (e) {
-        document.getElementById('aiDiagnosisResult').innerHTML = '<div class="ai-result text-red-600">Error. Try again.</div>';
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '🔬 Get AI Diagnosis';
-      }
-    };
-
-    window.getAIPrescription = async function() {
-      const diagnosis = document.getElementById('rxDiagnosis').value;
-      if (!diagnosis) { alert('Enter diagnosis'); return; }
-
-      const btn = document.getElementById('aiPrescriptionBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="ai-loading"></div> Generating...';
-
-      try {
-        const prompt = `Pharmacologist. Prescription for: ${diagnosis}, Age: ${document.getElementById('rxAge').value}, Weight: ${document.getElementById('rxWeight').value}kg. JSON: {"medicines":[{"name":"","dosage":"","frequency":"","duration":"","instructions":""}],"advice":""}`;
-        
-        const text = await callGemini(prompt);
-        const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
-        
-        let html = '<div class="ai-result"><h3 class="font-bold text-purple-700 mb-3">💊 Prescription</h3>';
-        json.medicines.forEach((m, i) => {
-          html += `<div class="bg-white border-2 border-gray-200 rounded p-3 mb-2"><h4 class="font-bold">${i+1}. ${m.name} - ${m.dosage}</h4><p class="text-sm">${m.frequency} for ${m.duration}</p><p class="text-xs text-gray-600">${m.instructions}</p></div>`;
-        });
-        html += `<p class="text-sm mt-3"><strong>💡</strong> ${json.advice}</p></div>`;
-        document.getElementById('aiPrescriptionResult').innerHTML = html;
-      } catch (e) {
-        document.getElementById('aiPrescriptionResult').innerHTML = '<div class="ai-result text-red-600">Error. Try again.</div>';
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '💊 Generate';
-      }
+      doc.save(`Rx_${patient.patient_id}_${new Date().toISOString().split('T')[0]}.pdf`);
+      alert('✅ PDF generated!');
     };
 
     window.openModal = function(id) {
       document.getElementById(id).classList.add('active');
-      if (id === 'patientModal') {
-        currentStep = 1;
-        document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.step-item').forEach(s => {
-          s.classList.remove('active', 'completed');
-        });
-        document.getElementById('step1').classList.add('active');
-        document.getElementById('step1-indicator').classList.add('active');
-      }
       if (id === 'examinationModal') {
         const select = document.getElementById('examPatient');
         select.innerHTML = DB.patients.map(p => `<option value="${p.id}">${p.patient_id} - ${p.first_name} ${p.last_name}</option>`).join('');
@@ -645,7 +667,7 @@
         <div class="flex gap-3 items-center">
           <img src="https://nyc3.digitaloceanspaces.com/bhindi-drive/files/cab453ed-7d3e-4dfa-9012-038dbc50c1c5/2025-12-07T15-33-38-867Z-c50befdf-chat-image-1765121618851-0.jpg" class="h-10">
           <h3 class="font-bold text-sm">City Health Clinic</h3>
-          <span class="ai-badge">🤖 Phase 1 Complete</span>
+          <span class="ai-badge">🤖 7 AI Features</span>
         </div>
         <div class="flex items-center gap-3">
           <p class="font-semibold text-sm">Dr. Rajesh Sharma</p>
@@ -657,7 +679,6 @@
           <a onclick="switchScreen('dashboard')" class="nav-link ${currentScreen === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
           <a onclick="switchScreen('patients')" class="nav-link ${currentScreen === 'patients' ? 'active' : ''}">👥 Patients</a>
           <a onclick="switchScreen('examinations')" class="nav-link ${currentScreen === 'examinations' ? 'active' : ''}">🩺 Examinations</a>
-          <a onclick="switchScreen('prescriptions')" class="nav-link ${currentScreen === 'prescriptions' ? 'active' : ''}">📝 Prescriptions</a>
           <a onclick="switchScreen('ai')" class="nav-link ${currentScreen === 'ai' ? 'active' : ''}">🤖 AI Suite</a>
         </nav>
       </aside>`;
@@ -667,39 +688,39 @@
       if (currentScreen === 'dashboard') {
         content = `<h1 class="text-2xl font-bold mb-6">👨‍⚕️ Doctor Dashboard</h1>
           <div class="grid grid-cols-4 gap-4 mb-6">
-            <div class="stat-card" onclick="switchScreen('patients')"><p class="text-gray-600 text-sm mb-1">Total Patients</p><p class="text-3xl font-bold text-green-600">${DB.patients.length}</p></div>
+            <div class="stat-card" onclick="switchScreen('patients')"><p class="text-gray-600 text-sm mb-1">Patients</p><p class="text-3xl font-bold text-green-600">${DB.patients.length}</p></div>
             <div class="stat-card" onclick="switchScreen('examinations')"><p class="text-gray-600 text-sm mb-1">Examinations</p><p class="text-3xl font-bold text-blue-600">${DB.examinations.length}</p></div>
-            <div class="stat-card" onclick="switchScreen('prescriptions')"><p class="text-gray-600 text-sm mb-1">Prescriptions</p><p class="text-3xl font-bold text-purple-600">${DB.prescriptions.length}</p></div>
-            <div class="stat-card" onclick="switchScreen('ai')"><p class="text-gray-600 text-sm mb-1">🤖 AI Features</p><p class="text-3xl font-bold text-purple-600">4 Active</p></div>
+            <div class="stat-card" onclick="switchScreen('ai')"><p class="text-gray-600 text-sm mb-1">🤖 AI Features</p><p class="text-3xl font-bold text-purple-600">7 Active</p></div>
+            <div class="stat-card"><p class="text-gray-600 text-sm mb-1">Phase</p><p class="text-3xl font-bold text-orange-600">2/6</p></div>
           </div>
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-3 gap-4">
             <div class="card">
-              <h3 class="font-bold mb-4">⚡ Quick Actions</h3>
-              <div class="space-y-2">
-                <button onclick="openModal('patientModal')" class="btn btn-success w-full">+ Register New Patient</button>
-                <button onclick="openModal('examinationModal')" class="btn btn-primary w-full">🩺 New Examination</button>
-              </div>
+              <h3 class="font-bold mb-3">⚡ Quick Actions</h3>
+              <button onclick="openModal('patientModal')" class="btn btn-success w-full mb-2">+ New Patient</button>
+              <button onclick="openModal('examinationModal')" class="btn btn-primary w-full">🩺 New Exam</button>
             </div>
             <div class="card">
-              <h3 class="font-bold mb-4">🤖 AI Assistant</h3>
-              <div class="space-y-2">
-                <button onclick="openModal('aiDiagnosisModal')" class="btn btn-purple w-full">🔬 AI Diagnosis</button>
-                <button onclick="openModal('aiPrescriptionModal')" class="btn btn-purple w-full">💊 AI Prescription</button>
-              </div>
+              <h3 class="font-bold mb-3">🤖 AI Diagnosis</h3>
+              <button onclick="openModal('aiDifferentialModal')" class="btn btn-purple w-full mb-2">🔬 Differential</button>
+              <button onclick="openModal('aiTreatmentModal')" class="btn btn-purple w-full">📋 Treatment</button>
+            </div>
+            <div class="card">
+              <h3 class="font-bold mb-3">🤖 AI Planning</h3>
+              <button onclick="openModal('aiFollowupModal')" class="btn btn-purple w-full">📅 Follow-up</button>
             </div>
           </div>`;
       } else if (currentScreen === 'patients') {
-        content = `<h1 class="text-2xl font-bold mb-6">👥 All Patients</h1>
-          <div class="mb-4"><button onclick="openModal('patientModal')" class="btn btn-success">+ Register Patient</button></div>
+        content = `<h1 class="text-2xl font-bold mb-6">👥 Patients</h1>
+          <div class="mb-4"><button onclick="openModal('patientModal')" class="btn btn-success">+ Register</button></div>
           <div class="card">
             <table>
-              <thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Blood</th><th>Phone</th><th>Insurance</th></tr></thead>
-              <tbody>${DB.patients.map(p => `<tr><td class="font-semibold">${p.patient_id}</td><td>${p.first_name} ${p.last_name}</td><td>${p.age}Y ${p.gender}</td><td>${p.blood_group}</td><td class="text-xs">${p.phone}</td><td class="text-xs">${p.insurance_provider || 'None'}</td></tr>`).join('')}</tbody>
+              <thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Blood</th><th>Phone</th></tr></thead>
+              <tbody>${DB.patients.map(p => `<tr><td class="font-semibold">${p.patient_id}</td><td>${p.first_name} ${p.last_name}</td><td>${p.age}Y ${p.gender}</td><td>${p.blood_group}</td><td class="text-xs">${p.phone}</td></tr>`).join('')}</tbody>
             </table>
           </div>`;
       } else if (currentScreen === 'examinations') {
-        content = `<h1 class="text-2xl font-bold mb-6">🩺 Clinical Examinations</h1>
-          <div class="mb-4"><button onclick="openModal('examinationModal')" class="btn btn-success">+ New Examination</button></div>
+        content = `<h1 class="text-2xl font-bold mb-6">🩺 Examinations</h1>
+          <div class="mb-4"><button onclick="openModal('examinationModal')" class="btn btn-success">+ New Exam</button></div>
           <div class="card">
             ${DB.examinations.length === 0 ? '<p class="text-gray-500">No examinations yet</p>' : `<table>
               <thead><tr><th>Date</th><th>Patient</th><th>Complaint</th><th>Diagnosis</th><th>Follow-up</th></tr></thead>
@@ -709,27 +730,29 @@
               }).join('')}</tbody>
             </table>`}
           </div>`;
-      } else if (currentScreen === 'prescriptions') {
-        content = `<h1 class="text-2xl font-bold mb-6">📝 Prescriptions</h1>
-          <div class="card">
-            ${DB.prescriptions.length === 0 ? '<p class="text-gray-500">No prescriptions yet. Create examinations to generate prescriptions.</p>' : '<table><thead><tr><th>Date</th><th>Patient</th><th>Diagnosis</th></tr></thead><tbody></tbody></table>'}
-          </div>`;
       } else if (currentScreen === 'ai') {
-        content = `<h1 class="text-2xl font-bold mb-6">🤖 AI Suite</h1>
-          <div class="grid grid-cols-2 gap-6">
-            <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiDiagnosisModal')">
+        content = `<h1 class="text-2xl font-bold mb-6">🤖 Complete AI Suite (7 Features)</h1>
+          <div class="grid grid-cols-3 gap-6">
+            <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiDifferentialModal')">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">🔬</div>
-                <div><h3 class="font-bold text-lg">AI Diagnosis</h3><span class="ai-badge">Active</span></div>
+                <div><h3 class="font-bold">Differential Diagnosis</h3><span class="ai-badge">NEW</span></div>
               </div>
-              <p class="text-sm text-gray-600">Analyze symptoms and get instant diagnosis suggestions</p>
+              <p class="text-sm text-gray-600">Rule out dangerous conditions with confidence scores</p>
             </div>
-            <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiPrescriptionModal')">
+            <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiTreatmentModal')">
               <div class="flex items-center gap-3 mb-3">
-                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">💊</div>
-                <div><h3 class="font-bold text-lg">AI Prescription</h3><span class="ai-badge">Active</span></div>
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">📋</div>
+                <div><h3 class="font-bold">Treatment Planner</h3><span class="ai-badge">NEW</span></div>
               </div>
-              <p class="text-sm text-gray-600">Generate medicine list with dosages</p>
+              <p class="text-sm text-gray-600">Step-by-step treatment protocols with day-by-day plans</p>
+            </div>
+            <div class="card cursor-pointer hover:shadow-xl transition" onclick="openModal('aiFollowupModal')">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">📅</div>
+                <div><h3 class="font-bold">Follow-up Predictor</h3><span class="ai-badge">NEW</span></div>
+              </div>
+              <p class="text-sm text-gray-600">Predict optimal follow-up dates based on condition</p>
             </div>
           </div>`;
       }
@@ -737,7 +760,7 @@
       app.innerHTML = `<div>${nav}<div class="flex">${sidebar}<main class="flex-1 p-6">${content}</main></div></div>`;
     }
 
-    console.log('🚀 PHASE 1 COMPLETE - Core Clinical Workflow Ready!');
+    console.log('🚀 PHASE 2 COMPLETE - 7 AI Features Active!');
     render();
   </script>
 </body>
